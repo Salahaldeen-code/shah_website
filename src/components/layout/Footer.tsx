@@ -1,9 +1,7 @@
-import { Container } from "@/components/shared/Container";
-
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-border">
-      <Container />
+    <footer className="border-t border-border/60">
+      <div className="mx-auto w-full max-w-[var(--container-max)] px-[var(--container-padding)] py-8" />
     </footer>
   );
 }

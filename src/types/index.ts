@@ -1,6 +1,21 @@
+export type { Locale } from "@/config/i18n";
+
+export type NavLabelKey =
+  | "home"
+  | "about"
+  | "services"
+  | "membershipSection"
+  | "portfolio"
+  | "contact"
+  | "aboutPage"
+  | "membershipPage";
+
+export type NavItemType = "page" | "section";
+
 export type NavItem = {
   href: string;
-  label: string;
+  labelKey: NavLabelKey;
+  type: NavItemType;
 };
 
 export type SiteConfig = {

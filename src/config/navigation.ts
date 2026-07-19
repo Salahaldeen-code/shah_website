@@ -1,7 +1,17 @@
 import type { NavItem } from "@/types";
 
+/**
+ * Central navigation config.
+ * - `page`: route links
+ * - `section`: in-page anchors on the homepage (smooth scroll)
+ */
 export const mainNavigation: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/membership", label: "Membership" },
+  { href: "/", labelKey: "home", type: "page" },
+  { href: "/#about", labelKey: "about", type: "section" },
+  { href: "/#services", labelKey: "services", type: "section" },
+  { href: "/#membership", labelKey: "membershipSection", type: "section" },
+  { href: "/#portfolio", labelKey: "portfolio", type: "section" },
+  { href: "/#contact", labelKey: "contact", type: "section" },
+  { href: "/about", labelKey: "aboutPage", type: "page" },
+  { href: "/membership", labelKey: "membershipPage", type: "page" },
 ];

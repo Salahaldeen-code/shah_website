@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
+import { FloatingNavigation } from "@/components/navigation/FloatingNavigation";
 import { siteConfig } from "@/config/site";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getLocale } from "@/lib/i18n/locale";
 import { getSiteUrl } from "@/lib/utils";
 
 import "@/styles/globals.css";
@@ -18,26 +20,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const display = Bebas_Neue({
+  weight: "400",
+  variable: "--font-display",
+  subsets: ["latin"],
+});
+
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: siteConfig.name || "Home",
-    template: siteConfig.name ? `%s | ${siteConfig.name}` : "%s",
+    default: siteConfig.name || "PSR",
+    template: siteConfig.name ? `%s | ${siteConfig.name}` : "%s | PSR",
   },
   description: siteConfig.description || undefined,
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: siteConfig.name || undefined,
-    title: siteConfig.name || undefined,
+    siteName: siteConfig.name || "PSR",
+    title: siteConfig.name || "PSR",
     description: siteConfig.description || undefined,
   },
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.name || undefined,
+    title: siteConfig.name || "PSR",
     description: siteConfig.description || undefined,
   },
   robots: {
@@ -46,20 +54,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const dictionary = await getDictionary(locale);
+
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang={locale}
+      className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <Header />
         {children}
         <Footer />
+        <FloatingNavigation locale={locale} dictionary={dictionary} />
       </body>
     </html>
   );

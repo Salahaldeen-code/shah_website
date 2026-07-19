@@ -1,3 +1,3 @@
 export function ServicesSection() {
-  return <section id="services" />;
+  return <section id="services" className="scroll-mt-24" />;
 }

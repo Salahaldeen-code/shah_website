@@ -5,5 +5,5 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  return <main />;
+  return <main className="pb-[var(--content-bottom-pad)]" />;
 }

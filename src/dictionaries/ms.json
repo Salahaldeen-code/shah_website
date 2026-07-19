@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "home": "Laman Utama",
+    "about": "Tentang",
+    "services": "Perkhidmatan",
+    "membershipSection": "Keahlian",
+    "portfolio": "Portfolio",
+    "contact": "Hubungi",
+    "aboutPage": "Halaman Tentang",
+    "membershipPage": "Halaman Keahlian"
+  },
+  "heading": {
+    "homeIntro": "Tajuk bahagian"
+  },
+  "a11y": {
+    "openMenu": "Buka menu",
+    "closeMenu": "Tutup menu",
+    "mainNavigation": "Navigasi utama",
+    "previousSlide": "Slaid sebelumnya",
+    "nextSlide": "Slaid seterusnya",
+    "carousel": "Karusel imej hero",
+    "slideStatus": "Slaid {current} daripada {total}"
+  },
+  "locale": {
+    "en": "English",
+    "ms": "Bahasa Melayu"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "membershipSection": "Membership",
+    "portfolio": "Portfolio",
+    "contact": "Contact",
+    "aboutPage": "About Page",
+    "membershipPage": "Membership Page"
+  },
+  "heading": {
+    "homeIntro": "Section heading"
+  },
+  "a11y": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNavigation": "Main navigation",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "carousel": "Hero image carousel",
+    "slideStatus": "Slide {current} of {total}"
+  },
+  "locale": {
+    "en": "English",
+    "ms": "Bahasa Melayu"
+  }
+}

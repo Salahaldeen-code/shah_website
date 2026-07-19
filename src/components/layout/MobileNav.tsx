@@ -4,8 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { mainNavigation } from "@/config/navigation";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function MobileNav() {
+type MobileNavProps = {
+  dictionary: Dictionary;
+};
+
+export function MobileNav({ dictionary }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -23,7 +28,7 @@ export function MobileNav() {
             {mainNavigation.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} onClick={() => setOpen(false)}>
-                  {item.label}
+                  {dictionary.nav[item.labelKey]}
                 </Link>
               </li>
             ))}
