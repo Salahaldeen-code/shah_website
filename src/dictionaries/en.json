@@ -3,14 +3,192 @@
     "home": "Home",
     "about": "About",
     "services": "Services",
+    "programs": "Programs",
+    "activities": "Activities",
     "membershipSection": "Membership",
     "portfolio": "Portfolio",
+    "galleryPage": "Gallery",
     "contact": "Contact",
     "aboutPage": "About Page",
     "membershipPage": "Membership Page"
   },
   "heading": {
     "homeIntro": "Section heading"
+  },
+  "showcase": {
+    "brandLine1": "Persatuan",
+    "brandLine2": "Sukan",
+    "brandAmp": "&",
+    "brandLine3": "Rekreasi",
+    "script": "EMBRACE THE ACTIVE LIFE",
+    "tagline": "Find your passion in diversified sports & recreation activities.",
+    "viewMore": "View more"
+  },
+  "impact": {
+    "lineA": "SPORTS",
+    "lineB": "STRONG",
+    "scriptA": "GO",
+    "scriptB": "GET"
+  },
+  "programs": {
+    "title": "Upcoming programs",
+    "subtitle": "Discover your next session across our hubs.",
+    "empty": "No upcoming programs right now.",
+    "join": "Join session",
+    "joinNow": "Join now",
+    "close": "Close",
+    "viewAll": "View all programs",
+    "showLess": "Show less",
+    "filters": {
+      "all": "All programs",
+      "team": "Team sports",
+      "racket": "Racket sports",
+      "fitness": "Fitness",
+      "aquatic": "Aquatic"
+    },
+    "columns": {
+      "program": "Program",
+      "date": "Date",
+      "time": "Time",
+      "venue": "Venue",
+      "action": "Action"
+    },
+    "items": {
+      "football": "Community Football",
+      "tennis": "Open Tennis Clinic",
+      "fitness": "Morning Fitness Circuit",
+      "swimming": "Lap Swim Session",
+      "badminton": "Badminton Social Night",
+      "yoga": "Recovery Yoga",
+      "kidsAthletics": "Kids Athletics",
+      "hiking": "Trail Walk & Hike"
+    },
+    "categories": {
+      "team": "Team sports",
+      "racket": "Racket sports",
+      "fitness": "Fitness",
+      "aquatic": "Aquatic",
+      "outdoor": "Outdoor",
+      "youth": "Youth"
+    },
+    "venues": {
+      "mainField": "Main field",
+      "courtA": "Court A",
+      "studio": "Movement studio",
+      "pool": "Aquatic centre",
+      "hall": "Indoor hall",
+      "trailHead": "Trail head"
+    },
+    "details": {
+      "football": "Join our community football session for all skill levels. Warm-up, scrimmages, and team play on the main field.",
+      "tennis": "An open tennis clinic covering technique, footwork, and friendly match play with coaches on Court A.",
+      "fitness": "A morning circuit of strength, mobility, and cardio stations designed for every fitness level.",
+      "swimming": "Structured lap swimming for endurance and recovery at the aquatic centre. All paces welcome.",
+      "badminton": "Social doubles and mixers in the indoor hall — rotate partners and enjoy late-evening rallies.",
+      "yoga": "A recovery-focused yoga session to reset mobility, breath, and balance after hard training days.",
+      "kidsAthletics": "Fun athletics drills and games for kids — coordination, speed, and confidence on the main field.",
+      "hiking": "A guided trail walk and hike with rest stops and scenic views. Families and first-timers welcome."
+    }
+  },
+  "activities": {
+    "title": "Activities",
+    "description": "Explore diversified activities designed for all levels. No matter your passion, we have a space for it to thrive.",
+    "items": {
+      "mountainBiking": "Mountain Biking Club",
+      "treePlanting": "Community Tree Planting",
+      "danceKids": "Dance Kids",
+      "aerialYoga": "Aerial Yoga"
+    },
+    "tags": {
+      "outdoor": "Outdoor",
+      "community": "Community",
+      "kids": "Kids",
+      "wellness": "Wellness"
+    },
+    "membership": {
+      "titleLine1": "Join the",
+      "titleLine2": "Movement",
+      "description": "Unlock classes, community programs, and exclusive member access — then manage it all in the PSR app.",
+      "imageAlt": "Badminton player mid-smash representing Persatuan Sukan & Rekreasi membership",
+      "joinCta": "Become a member"
+    }
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "Look back at completed programs — stories, highlights, and every photo from the day.",
+    "viewAlbum": "View gallery",
+    "backToGallery": "Back to gallery",
+    "photosHeading": "All photos",
+    "photoCount": "photos",
+    "labels": {
+      "date": "Date",
+      "venue": "Venue",
+      "photos": "Photos"
+    },
+    "albums": {
+      "community-football-day": {
+        "title": "Community Football Day",
+        "summary": "Teams from across the hub gathered for a full day of community football.",
+        "description": "Our Community Football Day brought players of all ages onto the main field for friendly matches, skills stations, and a shared celebration of the game. Volunteers, coaches, and families made it a highlight of the season."
+      },
+      "open-tennis-clinic": {
+        "title": "Open Tennis Clinic",
+        "summary": "An open clinic focused on technique, footwork, and fun rallies.",
+        "description": "Members and guests joined coaches for an open tennis clinic covering serve basics, groundstrokes, and match play. Beginners and intermediates shared courts throughout the afternoon."
+      },
+      "morning-fitness-circuit": {
+        "title": "Morning Fitness Circuit",
+        "summary": "An energizing outdoor circuit to start the weekend strong.",
+        "description": "Participants rotated through strength, mobility, and cardio stations in a morning fitness circuit. The session closed with a cool-down and community stretch on the studio lawn."
+      },
+      "lap-swim-session": {
+        "title": "Lap Swim Session",
+        "summary": "Focused lane swimming for endurance and recovery.",
+        "description": "Lap lanes were open for structured swim sets and easy recovery swims. Lifeguards and coaches supported swimmers of every pace at the aquatic centre."
+      },
+      "badminton-social-night": {
+        "title": "Badminton Social Night",
+        "summary": "Doubles, mixers, and late-evening rallies in the indoor hall.",
+        "description": "Our badminton social night filled the hall with friendly doubles, rotating partners, and plenty of smashes. New members found partners quickly and stayed for the full session."
+      },
+      "trail-walk-hike": {
+        "title": "Trail Walk & Hike",
+        "summary": "A scenic group hike along the local trail head routes.",
+        "description": "Walkers and hikers set out together for a guided trail session with rest stops, nature spotting, and a picnic finish. Families and first-time hikers were especially welcome."
+      }
+    }
+  },
+  "aboutPage": {
+    "eyebrow": "About PSR",
+    "title": "Built for an active community",
+    "lead": "Persatuan Sukan & Rekreasi brings people together through sports, recreation, and shared movement — from first steps to lifelong passion.",
+    "storyTitle": "Who we are",
+    "story": "We are a community association dedicated to opening doors to diversified sports and recreation. Whether you play for fun, fitness, or competition, PSR is a space to belong, train, and grow together.",
+    "missionTitle": "Our mission",
+    "mission": "To make active living accessible, inclusive, and inspiring for every age and ability across our hubs.",
+    "visionTitle": "Our vision",
+    "vision": "A thriving community where sports and recreation connect people, strengthen health, and create lasting friendships.",
+    "committeeTitle": "Committee organization chart",
+    "committeeSubtitle": "Meet the people leading Persatuan Sukan & Rekreasi.",
+    "pillarsTitle": "What we stand for",
+    "pillars": {
+      "community": {
+        "title": "Community first",
+        "body": "Programs and spaces designed for connection — not just competition."
+      },
+      "access": {
+        "title": "Open to all levels",
+        "body": "From beginners to seasoned athletes, everyone has a place to start."
+      },
+      "active": {
+        "title": "Active life, every day",
+        "body": "We encourage consistent movement through sports, recreation, and wellness."
+      }
+    },
+    "ctaTitle": "Ready to join the movement?",
+    "ctaBody": "Become a member and unlock classes, community programs, and exclusive access in the PSR app.",
+    "ctaMembership": "Become a member",
+    "ctaActivities": "Explore activities"
   },
   "a11y": {
     "openMenu": "Open menu",

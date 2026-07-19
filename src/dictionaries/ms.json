@@ -3,14 +3,192 @@
     "home": "Laman Utama",
     "about": "Tentang",
     "services": "Perkhidmatan",
+    "programs": "Program",
+    "activities": "Aktiviti",
     "membershipSection": "Keahlian",
     "portfolio": "Portfolio",
+    "galleryPage": "Galeri",
     "contact": "Hubungi",
     "aboutPage": "Halaman Tentang",
     "membershipPage": "Halaman Keahlian"
   },
   "heading": {
     "homeIntro": "Tajuk bahagian"
+  },
+  "showcase": {
+    "brandLine1": "Persatuan",
+    "brandLine2": "Sukan",
+    "brandAmp": "&",
+    "brandLine3": "Rekreasi",
+    "script": "HAYATI KEHIDUPAN AKTIF",
+    "tagline": "Cari minat anda dalam pelbagai aktiviti sukan & rekreasi.",
+    "viewMore": "Lihat lagi"
+  },
+  "impact": {
+    "lineA": "AKTIF",
+    "lineB": "KUAT",
+    "scriptA": "JADI",
+    "scriptB": "GET"
+  },
+  "programs": {
+    "title": "Program akan datang",
+    "subtitle": "Temui sesi seterusnya di hab kami.",
+    "empty": "Tiada program akan datang buat masa ini.",
+    "join": "Sertai sesi",
+    "joinNow": "Sertai sekarang",
+    "close": "Tutup",
+    "viewAll": "Lihat semua program",
+    "showLess": "Tunjuk kurang",
+    "filters": {
+      "all": "Semua program",
+      "team": "Sukan berpasukan",
+      "racket": "Sukan raket",
+      "fitness": "Kecergasan",
+      "aquatic": "Akuatik"
+    },
+    "columns": {
+      "program": "Program",
+      "date": "Tarikh",
+      "time": "Masa",
+      "venue": "Tempat",
+      "action": "Tindakan"
+    },
+    "items": {
+      "football": "Bola Sepak Komuniti",
+      "tennis": "Klinik Tenis Terbuka",
+      "fitness": "Litar Kecergasan Pagi",
+      "swimming": "Sesi Renang Lap",
+      "badminton": "Malam Sosial Badminton",
+      "yoga": "Yoga Pemulihan",
+      "kidsAthletics": "Olahraga Kanak-kanak",
+      "hiking": "Jalan Kaki & Hiking"
+    },
+    "categories": {
+      "team": "Sukan berpasukan",
+      "racket": "Sukan raket",
+      "fitness": "Kecergasan",
+      "aquatic": "Akuatik",
+      "outdoor": "Luaran",
+      "youth": "Belia"
+    },
+    "venues": {
+      "mainField": "Padang utama",
+      "courtA": "Gelanggang A",
+      "studio": "Studio pergerakan",
+      "pool": "Pusat akuatik",
+      "hall": "Dewan tertutup",
+      "trailHead": "Pintu masuk denai"
+    },
+    "details": {
+      "football": "Sertai sesi bola sepak komuniti untuk semua tahap. Pemanasan, scrimmage, dan permainan berpasukan di padang utama.",
+      "tennis": "Klinik tenis terbuka merangkumi teknik, footwork, dan permainan mesra bersama jurulatih di Gelanggang A.",
+      "fitness": "Litar pagi kekuatan, mobilitas, dan kardio yang sesuai untuk setiap tahap kecergasan.",
+      "swimming": "Renang lap berstruktur untuk daya tahan dan pemulihan di pusat akuatik. Semua tahap dialu-alukan.",
+      "badminton": "Beregu sosial dan mixer di dewan tertutup — tukar rakan dan nikmati rali malam.",
+      "yoga": "Sesi yoga pemulihan untuk mobilitas, pernafasan, dan keseimbangan selepas latihan berat.",
+      "kidsAthletics": "Latihan dan permainan olahraga untuk kanak-kanak — koordinasi, kelajuan, dan keyakinan di padang utama.",
+      "hiking": "Jalan kaki dan hiking berpandu dengan hentian rehat dan pemandangan. Keluarga dan pemula dialu-alukan."
+    }
+  },
+  "activities": {
+    "title": "Aktiviti",
+    "description": "Terokai pelbagai aktiviti untuk semua peringkat. Apa jua minat anda, kami ada ruang untuknya berkembang.",
+    "items": {
+      "mountainBiking": "Kelab Berbasikal Bukit",
+      "treePlanting": "Penanaman Pokok Komuniti",
+      "danceKids": "Tarian Kanak-kanak",
+      "aerialYoga": "Yoga Udara"
+    },
+    "tags": {
+      "outdoor": "Luaran",
+      "community": "Komuniti",
+      "kids": "Kanak-kanak",
+      "wellness": "Kesejahteraan"
+    },
+    "membership": {
+      "titleLine1": "Sertai",
+      "titleLine2": "Gerakan Ini",
+      "description": "Buka akses kelas, program komuniti, dan keistimewaan ahli — uruskan semuanya dalam aplikasi PSR.",
+      "imageAlt": "Pemain badminton sedang smash mewakili keahlian Persatuan Sukan & Rekreasi",
+      "joinCta": "Jadi ahli"
+    }
+  },
+  "gallery": {
+    "title": "Galeri",
+    "subtitle": "Imbas kembali program yang telah selesai — cerita, sorotan, dan semua foto hari tersebut.",
+    "viewAlbum": "Lihat galeri",
+    "backToGallery": "Kembali ke galeri",
+    "photosHeading": "Semua foto",
+    "photoCount": "foto",
+    "labels": {
+      "date": "Tarikh",
+      "venue": "Tempat",
+      "photos": "Foto"
+    },
+    "albums": {
+      "community-football-day": {
+        "title": "Hari Bola Sepak Komuniti",
+        "summary": "Pasukan dari seluruh hab berhimpun untuk hari bola sepak komuniti.",
+        "description": "Hari Bola Sepak Komuniti menghimpunkan pemain semua peringkat di padang utama untuk perlawanan mesra, stesen kemahiran, dan perayaan bersama. Sukarelawan, jurulatih, dan keluarga menjadikan ia sorotan musim ini."
+      },
+      "open-tennis-clinic": {
+        "title": "Klinik Tenis Terbuka",
+        "summary": "Klinik terbuka fokus kepada teknik, footwork, dan raket mesra.",
+        "description": "Ahli dan tetamu menyertai jurulatih dalam klinik tenis terbuka merangkumi asas servis, groundstroke, dan permainan. Pemula dan peringkat pertengahan berkongsi gelanggang sepanjang petang."
+      },
+      "morning-fitness-circuit": {
+        "title": "Litar Kecergasan Pagi",
+        "summary": "Litar bertenaga untuk memulakan hujung minggu dengan kuat.",
+        "description": "Peserta berputar melalui stesen kekuatan, mobilitas, dan kardio dalam litar kecergasan pagi. Sesi ditutup dengan penyejukan dan regangan komuniti."
+      },
+      "lap-swim-session": {
+        "title": "Sesi Renang Lap",
+        "summary": "Renang lorong fokususan untuk daya tahan dan pemulihan.",
+        "description": "Lorong lap dibuka untuk set renang berstruktur dan renang pemulihan. Penyelamat dan jurulatih menyokong perenang setiap tahap di pusat akuatik."
+      },
+      "badminton-social-night": {
+        "title": "Malam Sosial Badminton",
+        "summary": "Beregu, mixer, dan rali malam di dewan tertutup.",
+        "description": "Malam sosial badminton mengisi dewan dengan beregu mesra, rakan berputar, dan banyak smash. Ahli baharu mudah menemui rakan dan kekal sepanjang sesi."
+      },
+      "trail-walk-hike": {
+        "title": "Jalan Kaki & Hiking",
+        "summary": "Hiking berkumpulan di sepanjang laluan denai tempatan.",
+        "description": "Pejalan kaki dan hiker beredar bersama untuk sesi denai berpandu dengan hentian rehat, pemerhatian alam, dan penutup picnic. Keluarga dan hiker kali pertama dialu-alukan."
+      }
+    }
+  },
+  "aboutPage": {
+    "eyebrow": "Tentang PSR",
+    "title": "Dibina untuk komuniti aktif",
+    "lead": "Persatuan Sukan & Rekreasi menghimpunkan masyarakat melalui sukan, rekreasi, dan pergerakan bersama — dari langkah pertama hingga minat sepanjang hayat.",
+    "storyTitle": "Siapa kami",
+    "story": "Kami ialah persatuan komuniti yang membuka ruang kepada pelbagai sukan dan rekreasi. Sama ada untuk keseronokan, kecergasan, atau pertandingan, PSR ialah tempat untuk milik, berlatih, dan berkembang bersama.",
+    "missionTitle": "Misi kami",
+    "mission": "Menjadikan kehidupan aktif mudah diakses, inklusif, dan memberi inspirasi untuk semua umur dan keupayaan di hab kami.",
+    "visionTitle": "Visi kami",
+    "vision": "Komuniti yang berkembang di mana sukan dan rekreasi menghubungkan manusia, memperkukuh kesihatan, dan mencipta persahabatan yang kekal.",
+    "committeeTitle": "Carta organisasi jawatankuasa",
+    "committeeSubtitle": "Kenali barisan kepimpinan Persatuan Sukan & Rekreasi.",
+    "pillarsTitle": "Nilai kami",
+    "pillars": {
+      "community": {
+        "title": "Komuniti diutamakan",
+        "body": "Program dan ruang dibina untuk hubungan — bukan sekadar pertandingan."
+      },
+      "access": {
+        "title": "Terbuka untuk semua tahap",
+        "body": "Dari pemula hingga atlet berpengalaman, semua orang ada tempat untuk bermula."
+      },
+      "active": {
+        "title": "Kehidupan aktif setiap hari",
+        "body": "Kami menggalakkan pergerakan konsisten melalui sukan, rekreasi, dan kesejahteraan."
+      }
+    },
+    "ctaTitle": "Sedia sertai gerakan ini?",
+    "ctaBody": "Jadi ahli dan buka akses kelas, program komuniti, serta keistimewaan dalam aplikasi PSR.",
+    "ctaMembership": "Jadi ahli",
+    "ctaActivities": "Terokai aktiviti"
   },
   "a11y": {
     "openMenu": "Buka menu",

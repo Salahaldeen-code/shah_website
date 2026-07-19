@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google";
+import {
+  Bebas_Neue,
+  Geist,
+  Geist_Mono,
+  Permanent_Marker,
+} from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
 import { FloatingNavigation } from "@/components/navigation/FloatingNavigation";
@@ -23,6 +28,12 @@ const geistMono = Geist_Mono({
 const display = Bebas_Neue({
   weight: "400",
   variable: "--font-display",
+  subsets: ["latin"],
+});
+
+const script = Permanent_Marker({
+  weight: "400",
+  variable: "--font-script",
   subsets: ["latin"],
 });
 
@@ -65,7 +76,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${display.variable} ${script.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
         {children}

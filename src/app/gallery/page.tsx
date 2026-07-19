@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
 
-import { AboutPageContent } from "@/components/about/AboutPageContent";
+import { GalleryIndex } from "@/components/gallery/GalleryIndex";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getLocale } from "@/lib/i18n/locale";
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "Gallery",
   description:
-    "Learn about Persatuan Sukan & Rekreasi — community, sports, and active living.",
+    "Photos and stories from past Persatuan Sukan & Rekreasi programs.",
 };
 
-export default async function AboutPage() {
+export default async function GalleryPage() {
   const locale = await getLocale();
   const dictionary = await getDictionary(locale);
 
   return (
     <main className="min-h-svh bg-brand-dark pb-[var(--content-bottom-pad)] text-white">
-      <AboutPageContent copy={dictionary.aboutPage} />
+      <GalleryIndex
+        locale={locale}
+        copy={dictionary.gallery}
+        programsCopy={dictionary.programs}
+      />
     </main>
   );
 }

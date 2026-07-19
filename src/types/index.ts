@@ -4,8 +4,11 @@ export type NavLabelKey =
   | "home"
   | "about"
   | "services"
+  | "programs"
+  | "activities"
   | "membershipSection"
   | "portfolio"
+  | "galleryPage"
   | "contact"
   | "aboutPage"
   | "membershipPage";
