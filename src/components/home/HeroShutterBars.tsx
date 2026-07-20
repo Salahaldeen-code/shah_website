@@ -5,6 +5,15 @@ import { useEffect, useState } from "react";
 
 import { heroShutterConfig } from "@/config/carousel";
 
+type HeroShutterBarsProps = {
+  /** 0 = separated at edges, 1 = fully combined in the middle. */
+  combineAmount: number;
+  /** Measured hero container height in px (0 = use CSS svh fallbacks). */
+  heroHeightPx?: number;
+  /** Measured bar height in px (0 = use CSS var fallback). */
+  barHeightPx?: number;
+};
+
 type SplitAlign = "top" | "bottom";
 
 const ROLL_EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
@@ -67,12 +76,6 @@ function buildRollKeyframes(letterCount: number, cycleMs: number) {
   return parts.join("\n");
 }
 
-const DISPLAY_TEXT = buildDisplayText();
-const LETTER_COUNT = countLetters(DISPLAY_TEXT);
-const CYCLE_MS = getCycleMs(LETTER_COUNT);
-/** Built once — never re-injected on progress ticks. */
-const ROLL_KEYFRAMES_CSS = buildRollKeyframes(LETTER_COUNT, CYCLE_MS);
-
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
 
@@ -99,6 +102,7 @@ function RollingText({
   const { letterSpacingEm, squashScaleX } = heroShutterConfig;
 
   let letterIndex = 0;
+  // Extra width so scaleX squash fits inside clipped slot (no overflow-x: visible)
   const slotExtra = `${(squashScaleX - 1) * 0.55}em`;
 
   return (
@@ -208,6 +212,7 @@ function SplitRollingText({
   animate: boolean;
   cycleMs: number;
 }) {
+  // Left-align for marquee (not centered) so the track can scroll across the bar
   const alignClass =
     align === "top"
       ? "absolute bottom-0 left-0 translate-y-1/2"
@@ -220,27 +225,55 @@ function SplitRollingText({
   );
 }
 
-/**
- * Bars read --shutter-combine / --hero-height / --shutter-bar-height from the hero.
- * No per-frame props — avoids remounts and style thrashing.
- */
-export function HeroShutterBars() {
+export function HeroShutterBars({
+  combineAmount,
+  heroHeightPx = 0,
+  barHeightPx = 0,
+}: HeroShutterBarsProps) {
+  const t = Math.min(Math.max(combineAmount, 0), 1);
   const reducedMotion = usePrefersReducedMotion();
-  const animate = !reducedMotion && LETTER_COUNT > 0;
+
+  const displayText = buildDisplayText();
+  const letterCount = countLetters(displayText);
+  const cycleMs = getCycleMs(letterCount);
+  const keyframesCss = buildRollKeyframes(letterCount, cycleMs);
+  const animate = !reducedMotion && letterCount > 0;
+
+  // Pixel travel when measured; otherwise CSS vars (svh) matching the hero box
+  const topTransform =
+    heroHeightPx > 0 && barHeightPx > 0
+      ? `translate3d(0, ${(heroHeightPx / 2 - barHeightPx) * t}px, 0)`
+      : `translate3d(0, calc((var(--hero-height) * 0.5 - var(--shutter-bar-height)) * ${t}), 0)`;
+  const bottomTransform =
+    heroHeightPx > 0 && barHeightPx > 0
+      ? `translate3d(0, ${-(heroHeightPx / 2 - barHeightPx) * t}px, 0)`
+      : `translate3d(0, calc((var(--shutter-bar-height) - var(--hero-height) * 0.5) * ${t}), 0)`;
+
+  const barStyle =
+    barHeightPx > 0
+      ? ({ height: barHeightPx, transform: topTransform } as const)
+      : ({ transform: topTransform } as const);
+  const bottomBarStyle =
+    barHeightPx > 0
+      ? ({ height: barHeightPx, transform: bottomTransform } as const)
+      : ({ transform: bottomTransform } as const);
 
   return (
     <div
       className="pointer-events-none absolute inset-0 z-[5] overflow-hidden"
       aria-hidden="true"
     >
-      {animate ? <style>{ROLL_KEYFRAMES_CSS}</style> : null}
+      {animate ? <style>{keyframesCss}</style> : null}
 
-      <div className="shutter-bar-top absolute inset-x-0 top-0 h-[var(--shutter-bar-height)] overflow-hidden bg-brand-yellow will-change-transform">
+      <div
+        className="absolute inset-x-0 top-0 h-[var(--shutter-bar-height)] overflow-hidden bg-brand-yellow will-change-transform"
+        style={barStyle}
+      >
         <SplitRollingText
           align="top"
-          text={DISPLAY_TEXT}
+          text={displayText}
           animate={animate}
-          cycleMs={CYCLE_MS}
+          cycleMs={cycleMs}
         />
         {heroShutterConfig.accentText ? (
           <span className="absolute bottom-3 left-1/2 z-[1] -translate-x-1/2 font-display text-xs tracking-[0.2em] text-black uppercase sm:text-sm">
@@ -249,14 +282,43 @@ export function HeroShutterBars() {
         ) : null}
       </div>
 
-      <div className="shutter-bar-bottom absolute inset-x-0 bottom-0 h-[var(--shutter-bar-height)] overflow-hidden bg-brand-yellow will-change-transform">
+      <div
+        className="absolute inset-x-0 bottom-0 h-[var(--shutter-bar-height)] overflow-hidden bg-brand-yellow will-change-transform"
+        style={bottomBarStyle}
+      >
         <SplitRollingText
           align="bottom"
-          text={DISPLAY_TEXT}
+          text={displayText}
           animate={animate}
-          cycleMs={CYCLE_MS}
+          cycleMs={cycleMs}
         />
       </div>
     </div>
   );
+}
+
+export type ShutterLayoutMetrics = {
+  heroHeightPx: number;
+  barHeightPx: number;
+};
+
+/**
+ * Center gap clip matching bar positions.
+ * Uses the same pixel metrics as bar transforms so clips stay locked on mobile.
+ */
+export function getCenterClipPath(
+  combineAmount: number,
+  layout?: ShutterLayoutMetrics,
+): string {
+  const t = Math.min(Math.max(combineAmount, 0), 1);
+
+  if (layout && layout.heroHeightPx > 0 && layout.barHeightPx > 0) {
+    const travel = layout.heroHeightPx / 2 - layout.barHeightPx;
+    const inset = layout.barHeightPx + travel * t;
+    return `inset(${inset}px 0 ${inset}px 0)`;
+  }
+
+  const topInset = `calc(var(--shutter-bar-height) + (var(--hero-height) * 0.5 - var(--shutter-bar-height)) * ${t})`;
+  const bottomInset = `calc(var(--shutter-bar-height) + (var(--hero-height) * 0.5 - var(--shutter-bar-height)) * ${t})`;
+  return `inset(${topInset} 0 ${bottomInset} 0)`;
 }

@@ -1,7 +1,5 @@
+import { SocialFooter } from "@/components/layout/social-footer/SocialFooter";
+
 export function Footer() {
-  return (
-    <footer className="border-t border-border/60">
-      <div className="mx-auto w-full max-w-[var(--container-max)] px-[var(--container-padding)] py-8" />
-    </footer>
-  );
+  return <SocialFooter />;
 }

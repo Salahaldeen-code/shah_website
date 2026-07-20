@@ -66,7 +66,8 @@ export function ProgramDetailModal({
   const description = copy.details?.[program.titleKey] ?? copy.subtitle;
 
   useEffect(() => {
-    setMounted(true);
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {

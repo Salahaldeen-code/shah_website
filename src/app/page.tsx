@@ -1,8 +1,8 @@
 import { AboutSection } from "@/components/home/AboutSection";
 import { ActiveLifeSection } from "@/components/home/ActiveLifeSection";
 import { ActivitiesSection } from "@/components/home/ActivitiesSection";
-import { CenteredHeadingSection } from "@/components/home/CenteredHeadingSection";
 import { ContactSection } from "@/components/home/ContactSection";
+import { EditorialShowcaseSection } from "@/components/home/EditorialShowcaseSection";
 import { GallerySection } from "@/components/home/GallerySection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { ImpactSection } from "@/components/home/ImpactSection";
@@ -18,7 +18,7 @@ export default async function HomePage() {
   return (
     <main className="pb-[var(--content-bottom-pad)]">
       <HeroSection />
-      <CenteredHeadingSection heading={dictionary.heading.homeIntro} />
+      <EditorialShowcaseSection />
       <ActiveLifeSection copy={dictionary.showcase} />
       <ImpactSection />
       <ActivitiesSection />

@@ -65,6 +65,13 @@ export const heroCarouselConfig = {
   swipeThresholdPx: 48,
 } as const;
 
+/** Bar height as a fraction of the measured hero container height. */
+export const shutterBarHeightRatio = {
+  base: 0.14,
+  sm: 0.15,
+  lg: 0.16,
+} as const;
+
 export const heroShutterConfig = {
   /** Shared word shown in both bars (split across the seam). */
   marqueeText: "PSR",

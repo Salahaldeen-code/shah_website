@@ -1,10 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 
 import { CarouselIndicators } from "@/components/home/CarouselIndicators";
-import { HeroShutterBars } from "@/components/home/HeroShutterBars";
+import {
+  getCenterClipPath,
+  HeroShutterBars,
+  type ShutterLayoutMetrics,
+} from "@/components/home/HeroShutterBars";
 import {
   getCombineAmount,
   getPreviousPairIndex,
@@ -12,6 +23,7 @@ import {
   heroCarouselConfig,
   heroPairs,
   heroSlides,
+  shutterBarHeightRatio,
   type HeroSlide,
   type TimelinePhase,
 } from "@/config/carousel";
@@ -44,6 +56,69 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+function getBarHeightRatio() {
+  if (typeof window === "undefined") return shutterBarHeightRatio.base;
+  if (window.matchMedia("(min-width: 1024px)").matches) {
+    return shutterBarHeightRatio.lg;
+  }
+  if (window.matchMedia("(min-width: 640px)").matches) {
+    return shutterBarHeightRatio.sm;
+  }
+  return shutterBarHeightRatio.base;
+}
+
+/** Measure hero box in px so bar travel/clip stay locked (avoids vh vs svh mobile jumps). */
+function useShutterLayout(containerRef: RefObject<HTMLElement | null>) {
+  const [layout, setLayout] = useState<ShutterLayoutMetrics>({
+    heroHeightPx: 0,
+    barHeightPx: 0,
+  });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const heroHeightPx = el.getBoundingClientRect().height;
+      if (heroHeightPx <= 0) return;
+
+      const barHeightPx =
+        Math.round(heroHeightPx * getBarHeightRatio() * 100) / 100;
+
+      setLayout((prev) => {
+        if (
+          Math.abs(prev.heroHeightPx - heroHeightPx) < 0.5 &&
+          Math.abs(prev.barHeightPx - barHeightPx) < 0.5
+        ) {
+          return prev;
+        }
+        return { heroHeightPx, barHeightPx };
+      });
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(() => {
+      measure();
+    });
+    observer.observe(el);
+
+    const mediaSm = window.matchMedia("(min-width: 640px)");
+    const mediaLg = window.matchMedia("(min-width: 1024px)");
+    const onBreakpoint = () => measure();
+    mediaSm.addEventListener("change", onBreakpoint);
+    mediaLg.addEventListener("change", onBreakpoint);
+
+    return () => {
+      observer.disconnect();
+      mediaSm.removeEventListener("change", onBreakpoint);
+      mediaLg.removeEventListener("change", onBreakpoint);
+    };
+  }, [containerRef]);
+
+  return layout;
+}
+
 function preloadImage(src: string) {
   if (typeof window === "undefined") return Promise.resolve();
   const image = new window.Image();
@@ -60,17 +135,19 @@ function preloadImage(src: string) {
 function SlideLayer({
   slide,
   priority,
-  clip,
+  clipPath,
   className = "",
 }: {
   slide: HeroSlide;
   priority?: boolean;
-  /** When true, reveal via transform portal synced to shutter bars. */
-  clip?: boolean;
+  clipPath?: string;
   className?: string;
 }) {
-  const media = (
-    <>
+  return (
+    <div
+      className={`absolute inset-0 ${className}`}
+      style={clipPath ? { clipPath } : undefined}
+    >
       <Image
         src={slide.src}
         alt={slide.alt}
@@ -80,46 +157,37 @@ function SlideLayer({
         className="object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/25 to-brand-red/20" />
-    </>
+    </div>
   );
-
-  if (clip) {
-    return (
-      <div className={`shutter-center-portal ${className}`}>
-        <div className="shutter-center-portal-media relative">{media}</div>
-      </div>
-    );
-  }
-
-  return <div className={`absolute inset-0 ${className}`}>{media}</div>;
 }
 
-type ShutterSlides = {
-  outside: HeroSlide;
-  center: HeroSlide;
-};
+type LayerMode =
+  | { kind: "single"; slide: HeroSlide }
+  | {
+      kind: "dual";
+      outside: HeroSlide;
+      center: HeroSlide;
+    };
 
-/**
- * Always dual layers for the motion path so we never remount single↔dual
- * at phase edges (that remount was causing start/end lag on mobile).
- */
-function getShutterSlides(
+function getLayerMode(
   phase: TimelinePhase,
   imageA: HeroSlide,
   imageB: HeroSlide,
   imagePrev: HeroSlide,
-): ShutterSlides {
+): LayerMode {
   if (phase === "opening") {
-    return { outside: imagePrev, center: imageA };
+    // Next (A) between bars, previous outside
+    return { kind: "dual", outside: imagePrev, center: imageA };
   }
-  // openHold / closing / closedHold: B stays outside (under bars or beside banner)
-  return { outside: imageB, center: imageA };
-}
-
-function applyHeroGeometry(el: HTMLElement) {
-  const height = el.clientHeight;
-  if (height <= 0) return;
-  el.style.setProperty("--hero-height", `${height}px`);
+  if (phase === "openHold") {
+    return { kind: "single", slide: imageA };
+  }
+  if (phase === "closing") {
+    // Previous (A) between, next (B) outside
+    return { kind: "dual", outside: imageB, center: imageA };
+  }
+  // closedHold
+  return { kind: "single", slide: imageB };
 }
 
 export function HeroCarousel({
@@ -128,27 +196,22 @@ export function HeroCarousel({
 }: HeroCarouselProps) {
   const pairCount = heroPairs.length;
   const [pairIndex, setPairIndex] = useState(0);
-  const [phase, setPhase] = useState<TimelinePhase>("openHold");
   const [progress, setProgress] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
   const [hasLooped, setHasLooped] = useState(false);
 
-  const heroRef = useRef<HTMLElement | null>(null);
   const touchStartX = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
   const startedAtRef = useRef(0);
   const cycleIdRef = useRef(0);
   const preloadedCloseRef = useRef<number | null>(null);
   const preloadedOpenRef = useRef<number | null>(null);
-  const phaseRef = useRef<TimelinePhase>("openHold");
-  const skipOpeningRef = useRef(true);
+  const heroRef = useRef<HTMLElement | null>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const shutterLayout = useShutterLayout(heroRef);
 
   const skipOpening = pairIndex === 0 && !hasLooped;
-
-  useEffect(() => {
-    skipOpeningRef.current = skipOpening;
-  }, [skipOpening]);
+  const timelineOptions = { skipOpening };
 
   const pair = heroPairs[pairIndex] ?? [0, 0];
   const prevPairIndex = getPreviousPairIndex(pairIndex, pairCount);
@@ -158,22 +221,18 @@ export function HeroCarousel({
   const imageB = slides[pair[1]];
   const imagePrev = slides[prevPair[1]];
 
-  const shutterSlides =
+  const combineAmount = reducedMotion
+    ? 0
+    : getCombineAmount(progress, timelineOptions);
+  const phase = getTimelinePhase(progress, timelineOptions);
+  const centerClip = getCenterClipPath(combineAmount, shutterLayout);
+  const layerMode =
     imageA && imageB && imagePrev
-      ? getShutterSlides(phase, imageA, imageB, imagePrev)
+      ? getLayerMode(phase, imageA, imageB, imagePrev)
       : null;
 
+  // Promote active image only after movement completes
   const resolvedActiveIndex = phase === "closedHold" ? pair[1] : pair[0];
-
-  const writeMotionVars = useCallback(
-    (ratio: number, combine: number) => {
-      const el = heroRef.current;
-      if (!el) return;
-      el.style.setProperty("--shutter-combine", String(combine));
-      el.style.setProperty("--carousel-progress", String(ratio));
-    },
-    [],
-  );
 
   const clearFrame = useCallback(() => {
     if (frameRef.current !== null) {
@@ -188,15 +247,11 @@ export function HeroCarousel({
       if (fromIndex === pairCount - 1 && next === 0) {
         setHasLooped(true);
       }
-      // Always open at line start after the first mount (skipOpening only once)
-      phaseRef.current = "opening";
-      setPhase("opening");
-      writeMotionVars(0, 1);
       setPairIndex(next);
       setProgress(0);
       setRestartKey((key) => key + 1);
     },
-    [pairCount, writeMotionVars],
+    [pairCount],
   );
 
   const goToPair = useCallback(
@@ -207,108 +262,63 @@ export function HeroCarousel({
       clearFrame();
       preloadedCloseRef.current = null;
       preloadedOpenRef.current = null;
-      const wrappingToFirst = pairIndex === pairCount - 1 && next === 0;
-      if (wrappingToFirst) {
+      if (pairIndex === pairCount - 1 && next === 0) {
         setHasLooped(true);
       }
-      // Match skipOpening: first line only before any full loop
-      const skip = next === 0 && !hasLooped && !wrappingToFirst;
-      const nextPhase: TimelinePhase = skip ? "openHold" : "opening";
-      const nextCombine = skip ? 0 : 1;
-      phaseRef.current = nextPhase;
-      setPhase(nextPhase);
-      writeMotionVars(0, nextCombine);
       setPairIndex(next);
       setProgress(0);
       setRestartKey((key) => key + 1);
     },
-    [clearFrame, hasLooped, pairCount, pairIndex, writeMotionVars],
+    [clearFrame, pairCount, pairIndex],
   );
-
-  // Stable container geometry — resize only, never resets the cycle
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    applyHeroGeometry(el);
-
-    const observer = new ResizeObserver(() => {
-      applyHeroGeometry(el);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     if (pairCount === 0) return;
 
     clearFrame();
     const cycleId = cycleIdRef.current;
-    const currentPair = pairIndex;
     startedAtRef.current = performance.now();
     preloadedCloseRef.current = null;
     preloadedOpenRef.current = null;
-
-    const options = { skipOpening: skipOpeningRef.current };
-    const initialCombine = reducedMotion
-      ? 0
-      : getCombineAmount(0, options);
-    const initialPhase = getTimelinePhase(0, options);
-    phaseRef.current = initialPhase;
-    setPhase(initialPhase);
-    writeMotionVars(0, initialCombine);
 
     const tick = (now: number) => {
       if (cycleId !== cycleIdRef.current) return;
 
       const elapsed = now - startedAtRef.current;
       const ratio = Math.min(elapsed / heroCarouselConfig.pairCycleMs, 1);
-      const opts = { skipOpening: skipOpeningRef.current };
-      const combine = reducedMotion ? 0 : getCombineAmount(ratio, opts);
-      const nextPhase = getTimelinePhase(ratio, opts);
-
-      writeMotionVars(ratio, combine);
-
-      if (nextPhase !== phaseRef.current) {
-        phaseRef.current = nextPhase;
-        setPhase(nextPhase);
-      }
-
-      if (reducedMotion) {
-        setProgress(ratio);
-      }
+      setProgress(ratio);
 
       const { openHold, closing } = heroCarouselConfig.phaseEnds;
 
+      // Preload B before midpoint close
       if (
         !reducedMotion &&
-        preloadedCloseRef.current !== currentPair &&
+        preloadedCloseRef.current !== pairIndex &&
         ratio >= openHold * 0.85
       ) {
-        const pairSlides = heroPairs[currentPair];
-        const b = pairSlides ? slides[pairSlides[1]] : undefined;
-        if (b?.src) {
-          preloadedCloseRef.current = currentPair;
-          void preloadImage(b.src);
+        if (imageB?.src) {
+          preloadedCloseRef.current = pairIndex;
+          void preloadImage(imageB.src);
         }
       }
 
+      // Preload next line's A before line ends (for upcoming open)
       if (
         !reducedMotion &&
-        preloadedOpenRef.current !== currentPair &&
+        preloadedOpenRef.current !== pairIndex &&
         ratio >= closing
       ) {
-        const nextPair = heroPairs[(currentPair + 1) % pairCount];
+        const nextPair = heroPairs[(pairIndex + 1) % pairCount];
         const nextA = nextPair ? slides[nextPair[0]] : undefined;
         if (nextA?.src) {
-          preloadedOpenRef.current = currentPair;
+          preloadedOpenRef.current = pairIndex;
           void preloadImage(nextA.src);
         }
       }
 
       if (ratio >= 1) {
         cycleIdRef.current += 1;
-        advancePair(currentPair);
+        advancePair(pairIndex);
         return;
       }
 
@@ -320,12 +330,12 @@ export function HeroCarousel({
   }, [
     advancePair,
     clearFrame,
+    imageB?.src,
     pairCount,
     pairIndex,
     reducedMotion,
     restartKey,
     slides,
-    writeMotionVars,
   ]);
 
   if (
@@ -334,12 +344,20 @@ export function HeroCarousel({
     !imageA ||
     !imageB ||
     !imagePrev ||
-    !shutterSlides
+    !layerMode
   ) {
     return null;
   }
 
   const statusIndex = resolvedActiveIndex;
+
+  const heroCssVars: CSSProperties | undefined =
+    shutterLayout.heroHeightPx > 0
+      ? ({
+          "--hero-height": `${shutterLayout.heroHeightPx}px`,
+          "--shutter-bar-height": `${shutterLayout.barHeightPx}px`,
+        } as CSSProperties)
+      : undefined;
 
   return (
     <section
@@ -347,7 +365,8 @@ export function HeroCarousel({
       id="hero"
       aria-roledescription="carousel"
       aria-label={labels.carousel}
-      className="hero-shutter-root relative h-[100svh] min-h-[28rem] w-full touch-pan-y overflow-hidden bg-brand-dark"
+      className="relative h-[100svh] min-h-[28rem] w-full touch-pan-y overflow-hidden bg-brand-dark"
+      style={heroCssVars}
       onTouchStart={(event) => {
         touchStartX.current = event.changedTouches[0]?.clientX ?? null;
       }}
@@ -392,39 +411,48 @@ export function HeroCarousel({
               }`}
             />
           </>
+        ) : layerMode.kind === "single" ? (
+          <SlideLayer
+            key={layerMode.slide.id}
+            slide={layerMode.slide}
+            priority={pairIndex === 0 || layerMode.slide.id === imageA.id}
+          />
         ) : (
           <>
-            {/* Stable keys: portal DOM must not remount at phase edges */}
+            {/* Outside stays unclipped; center uses shutter clip */}
             <SlideLayer
-              key="shutter-outside"
-              slide={shutterSlides.outside}
+              key={layerMode.outside.id}
+              slide={layerMode.outside}
               priority
               className="z-0"
             />
             <SlideLayer
-              key="shutter-center"
-              slide={shutterSlides.center}
+              key={layerMode.center.id}
+              slide={layerMode.center}
               priority={pairIndex === 0}
-              clip
+              clipPath={centerClip}
               className="z-[1]"
             />
           </>
         )}
       </div>
 
-      {!reducedMotion ? <HeroShutterBars /> : null}
+      {!reducedMotion ? (
+        <HeroShutterBars
+          combineAmount={combineAmount}
+          heroHeightPx={shutterLayout.heroHeightPx}
+          barHeightPx={shutterLayout.barHeightPx}
+        />
+      ) : null}
 
       <p className="sr-only" aria-live="polite">
-        {formatSlideStatus(
-          labels.slideStatus,
-          statusIndex + 1,
-          slides.length,
-        )}
+        {formatSlideStatus(labels.slideStatus, statusIndex + 1, slides.length)}
       </p>
 
       <CarouselIndicators
         count={pairCount}
         activeIndex={pairIndex}
+        progress={progress}
         onSelect={goToPair}
         labels={heroPairs.map(([first], index) => {
           const slide = slides[first];
