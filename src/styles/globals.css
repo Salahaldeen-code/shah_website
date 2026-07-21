@@ -339,17 +339,17 @@ body {
   color: #fff;
 }
 
-/* Fixed shell = always 4-row height, even with fewer filtered programs */
+/* Fixed shell = always 4-row height on desktop; fluid height on mobile */
 .programs-table-shell {
   display: flex;
   flex-direction: column;
-  height: calc(4 * 5.5rem);
-  min-height: calc(4 * 5.5rem);
+  height: auto;
+  min-height: 0;
 }
 
 .programs-table-shell-expanded {
   height: auto;
-  max-height: min(28rem, 52vh);
+  max-height: min(34rem, 58vh);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;

@@ -106,7 +106,10 @@ export function NavigationMenu({
                         window.history.pushState(null, "", hash);
                         document
                           .querySelector(hash)
-                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
                         window.dispatchEvent(new Event("hashchange"));
                       }
                     }

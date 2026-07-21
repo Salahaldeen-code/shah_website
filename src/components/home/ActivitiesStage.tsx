@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ActivitiesTitleDrum } from "@/components/home/ActivitiesTitleDrum";
 import {
   activitiesMembershipImage,
+  activityItems,
   activityPairs,
   type ActivityItem,
   type ActivityTagKey,
@@ -70,6 +71,7 @@ type ActivityPanelProps = {
   tag: string;
   className: string;
   style?: CSSProperties;
+  compact?: boolean;
 };
 
 function ActivityPanel({
@@ -78,6 +80,7 @@ function ActivityPanel({
   tag,
   className,
   style,
+  compact = false,
 }: ActivityPanelProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -121,12 +124,18 @@ function ActivityPanel({
         onFocus={startPreview}
         onBlur={stopPreview}
       >
-        <div className="relative aspect-[4/5] w-full">
+        <div
+          className={`relative w-full ${compact ? "aspect-[3/4]" : "aspect-[4/5]"}`}
+        >
           <Image
             src={item.image}
             alt={title}
             fill
-            sizes="(max-width: 768px) 62vw, 376px"
+            sizes={
+              compact
+                ? "(max-width: 639px) 46vw, 376px"
+                : "(max-width: 768px) 62vw, 376px"
+            }
             className={`object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.03] ${
               playing ? "opacity-0" : "opacity-100"
             }`}
@@ -145,20 +154,64 @@ function ActivityPanel({
             tabIndex={-1}
           />
         </div>
-        <div className="flex items-center gap-2 bg-black px-3 py-3">
+        <div
+          className={`flex items-center gap-2 bg-black ${
+            compact ? "flex-wrap px-2.5 py-2.5" : "px-3 py-3"
+          }`}
+        >
           <span
             aria-hidden="true"
             className="inline-block h-2 w-2 shrink-0 bg-brand-yellow"
           />
-          <h3 className="min-w-0 flex-1 font-display text-sm tracking-[0.06em] text-white uppercase sm:text-base">
+          <h3
+            className={`min-w-0 flex-1 font-display tracking-[0.06em] text-white uppercase ${
+              compact ? "text-[0.7rem] leading-snug" : "text-sm sm:text-base"
+            }`}
+          >
             {title}
           </h3>
-          <span className="shrink-0 bg-white/10 px-2 py-0.5 text-[0.55rem] tracking-[0.14em] text-white/80 uppercase">
+          <span
+            className={`shrink-0 bg-white/10 tracking-[0.14em] text-white/80 uppercase ${
+              compact
+                ? "px-1.5 py-0.5 text-[0.5rem]"
+                : "px-2 py-0.5 text-[0.55rem]"
+            }`}
+          >
             {tag}
           </span>
         </div>
       </div>
     </article>
+  );
+}
+
+function MobileActivitiesLayout({ copy }: { copy: ActivitiesCopy }) {
+  return (
+    <div className="relative bg-black px-[var(--container-padding)] pt-12 pb-6">
+      <header className="mx-auto max-w-lg text-center">
+        <h2 className="font-display text-[clamp(2.75rem,14vw,4.5rem)] leading-none tracking-[-0.02em] text-brand-yellow uppercase">
+          {copy.title}
+        </h2>
+        <p className="mx-auto mt-4 max-w-sm text-[0.72rem] leading-relaxed tracking-[0.12em] text-white/70 uppercase">
+          {copy.description}
+        </p>
+      </header>
+
+      <ul className="mx-auto mt-8 grid max-w-lg grid-cols-2 gap-3">
+        {activityItems.map((item) => (
+          <li key={item.id}>
+            <ActivityPanel
+              item={item}
+              title={copy.items[item.titleKey]}
+              tag={copy.tags[item.tagKey]}
+              className="w-full"
+              compact
+              style={{ animation: "none" }}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -189,7 +242,6 @@ function ActivityPairLayer({
         transform: `translate3d(0, ${shiftY}, 0)`,
         opacity,
         willChange: "transform, opacity",
-        // Keep hover active on visible cards; only hard-disable when nearly gone
         pointerEvents: inert || opacity < 0.2 ? "none" : "auto",
       }}
       aria-hidden={inert || opacity < 0.15 ? true : undefined}
@@ -278,6 +330,7 @@ function MembershipAct({
 
 /**
  * Sticky Activities stage (cards + Aerial Yoga), then normal Join the Movement below.
+ * Phone (<640px): simple title + 2×2 grid — no overlapping absolute cards.
  */
 export function ActivitiesStage({ copy }: ActivitiesStageProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -316,8 +369,6 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
     };
   }, [reducedMotion]);
 
-  // Early pairs swap, Aerial Yoga rises, then the whole stage (incl. card) lifts away
-  // Ranges span more of the (longer) track so each beat reads slower
   const pairShift = reducedMotion ? 0 : smooth(range(progress, 0.02, 0.38));
   const stageLift = reducedMotion ? 0 : smooth(range(progress, 0.28, 0.94));
   const rise = reducedMotion ? 1 : smooth(range(progress, 0.3, 0.78));
@@ -330,7 +381,6 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
   const danceOpacity =
     smooth(range(pairShift, 0, 0.5)) * (1 - rise * 1.1) * (1 - stageLift * 0.6);
 
-  // Card: above badminton → rise on a fixed vertical line (no slide to center)
   const featuredLeft = 76;
   const featuredTop = lerp(78, 48, rise);
   const featuredOpacity =
@@ -353,17 +403,14 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
 
   const featuredCardClass = `absolute z-40 ${activityCardWidthClass}`;
 
-  // Drive the title drum through a full face flip before the stage lifts away
   const drumProgress = reducedMotion
     ? 0.35
     : smooth(range(progress, 0.02, 0.55));
 
-  // Fully clear the sticky stage so nothing pins over Join the Movement
   const stageTranslateY = -stageLift * 120;
   const stageOpacity = Math.max(0, 1 - stageLift * 1.2);
   const stageGone = stageLift > 0.92;
 
-  // Reveal Join the Movement underneath as the stage lifts away
   const bottomReveal = smooth(range(Math.max(rise, stageLift), 0.05, 0.7));
   const fieldMaskStop = 100 - bottomReveal * 85;
   const fieldMask =
@@ -371,125 +418,124 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
       ? undefined
       : `linear-gradient(to bottom, #000 0%, #000 ${fieldMaskStop}%, transparent 100%)`;
 
-  if (reducedMotion) {
-    return (
-      <div className="relative bg-black">
-        <div className="relative mx-auto flex min-h-svh w-full max-w-[90rem] items-center px-[var(--container-padding)] py-16 sm:py-20">
-          <div className="relative mx-auto min-h-[28rem] w-full md:min-h-[34rem] lg:min-h-[38rem]">
-            <ActivityPairLayer
-              pair={pairA}
-              copy={copy}
-              shiftY="0%"
-              opacity={1}
-            />
-            <ActivityPanel
-              item={featured}
-              title={copy.items[featured.titleKey]}
-              tag={copy.tags[featured.tagKey]}
-              className={featuredCardClass}
-              style={{
-                animation: "none",
-                left: "76%",
-                top: "48%",
-                transform: "translate3d(-50%, -40%, 0)",
-              }}
-            />
-            <div className="pointer-events-none relative z-10 md:absolute md:inset-0 md:flex md:items-center md:justify-center">
-              <ActivitiesTitleDrum
-                title={copy.title}
-                description={copy.description}
-                progress={0.35}
-                reducedMotion
-              />
-            </div>
-          </div>
-        </div>
-        <MembershipAct membership={membership} />
-      </div>
-    );
-  }
-
   return (
     <div className="relative bg-black">
-      {/* Taller track = slower scrub through pairs / title drum / Aerial Yoga */}
-      <div ref={trackRef} className="relative h-[280vh]">
-        <div
-          className="sticky top-0 h-svh overflow-hidden bg-transparent"
-          style={{
-            zIndex: stageGone ? 0 : 20,
-            pointerEvents: stageGone ? "none" : undefined,
-          }}
-        >
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 z-0 bg-black"
-            style={{
-              opacity: stageGone ? 0 : 1,
-              WebkitMaskImage: fieldMask,
-              maskImage: fieldMask,
-            }}
-          />
+      {/* Phone: readable 2×2 grid (no overlapping absolute cards) */}
+      <div className="sm:hidden">
+        <MobileActivitiesLayout copy={copy} />
+      </div>
 
-          {/* ACTIVITIES title + pairs + Aerial Yoga — share the same scroll lift */}
-          <div
-            className="absolute inset-0 z-10"
-            style={{
-              transform: `translate3d(0, ${stageTranslateY}%, 0)`,
-              opacity: stageOpacity,
-              visibility: stageGone ? "hidden" : undefined,
-              willChange: "transform, opacity",
-            }}
-            aria-hidden={stageGone ? true : undefined}
-          >
-            <div className="relative mx-auto flex h-full w-full max-w-[90rem] items-center px-[var(--container-padding)] py-16 sm:py-20">
-              <div className="relative mx-auto min-h-[28rem] w-full md:min-h-[34rem] lg:min-h-[38rem]">
-                {/* pointer-events-none so the full-bleed title layer never blocks card hover/video */}
-                <div className="pointer-events-none relative z-10 md:absolute md:inset-0 md:flex md:items-center md:justify-center">
-                  <ActivitiesTitleDrum
-                    title={copy.title}
-                    description={copy.description}
-                    progress={drumProgress}
-                    reducedMotion={false}
-                  />
-                </div>
-
-                {pairAOpacity > 0.02 ? (
-                  <ActivityPairLayer
-                    pair={pairA}
-                    copy={copy}
-                    shiftY={`${-pairShift * 120}%`}
-                    opacity={pairAOpacity}
-                    inert={pairShift > 0.8}
-                  />
-                ) : null}
-
-                {danceOpacity > 0.02 ? (
-                  <ActivityPairLayer
-                    pair={pairB}
-                    copy={copy}
-                    shiftY={`${(1 - pairShift) * 50}%`}
-                    opacity={danceOpacity}
-                    inert={rise > 0.35}
-                    showTopLeft
-                    showBottomRight={false}
-                  />
-                ) : null}
-
-                {/* Aerial Yoga — rises into place, then exits with the stage */}
-                <ActivityPanel
-                  item={featured}
-                  title={copy.items[featured.titleKey]}
-                  tag={copy.tags[featured.tagKey]}
-                  className={featuredCardClass}
-                  style={featuredStyle}
+      {/* Tablet / desktop: sticky scroll stage */}
+      <div className="hidden sm:block">
+        {reducedMotion ? (
+          <div className="relative mx-auto flex min-h-svh w-full max-w-[90rem] items-center px-[var(--container-padding)] py-16 sm:py-20">
+            <div className="relative mx-auto min-h-[28rem] w-full md:min-h-[34rem] lg:min-h-[38rem]">
+              <ActivityPairLayer
+                pair={pairA}
+                copy={copy}
+                shiftY="0%"
+                opacity={1}
+              />
+              <ActivityPanel
+                item={featured}
+                title={copy.items[featured.titleKey]}
+                tag={copy.tags[featured.tagKey]}
+                className={featuredCardClass}
+                style={{
+                  animation: "none",
+                  left: "76%",
+                  top: "48%",
+                  transform: "translate3d(-50%, -40%, 0)",
+                }}
+              />
+              <div className="pointer-events-none relative z-10 md:absolute md:inset-0 md:flex md:items-center md:justify-center">
+                <ActivitiesTitleDrum
+                  title={copy.title}
+                  description={copy.description}
+                  progress={0.35}
+                  reducedMotion
                 />
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div ref={trackRef} className="relative h-[280vh]">
+            <div
+              className="sticky top-0 h-svh overflow-hidden bg-transparent"
+              style={{
+                zIndex: stageGone ? 0 : 20,
+                pointerEvents: stageGone ? "none" : undefined,
+              }}
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 z-0 bg-black"
+                style={{
+                  opacity: stageGone ? 0 : 1,
+                  WebkitMaskImage: fieldMask,
+                  maskImage: fieldMask,
+                }}
+              />
+
+              <div
+                className="absolute inset-0 z-10"
+                style={{
+                  transform: `translate3d(0, ${stageTranslateY}%, 0)`,
+                  opacity: stageOpacity,
+                  visibility: stageGone ? "hidden" : undefined,
+                  willChange: "transform, opacity",
+                }}
+                aria-hidden={stageGone ? true : undefined}
+              >
+                <div className="relative mx-auto flex h-full w-full max-w-[90rem] items-center px-[var(--container-padding)] py-16 sm:py-20">
+                  <div className="relative mx-auto min-h-[28rem] w-full md:min-h-[34rem] lg:min-h-[38rem]">
+                    <div className="pointer-events-none relative z-10 md:absolute md:inset-0 md:flex md:items-center md:justify-center">
+                      <ActivitiesTitleDrum
+                        title={copy.title}
+                        description={copy.description}
+                        progress={drumProgress}
+                        reducedMotion={false}
+                      />
+                    </div>
+
+                    {pairAOpacity > 0.02 ? (
+                      <ActivityPairLayer
+                        pair={pairA}
+                        copy={copy}
+                        shiftY={`${-pairShift * 120}%`}
+                        opacity={pairAOpacity}
+                        inert={pairShift > 0.8}
+                      />
+                    ) : null}
+
+                    {danceOpacity > 0.02 ? (
+                      <ActivityPairLayer
+                        pair={pairB}
+                        copy={copy}
+                        shiftY={`${(1 - pairShift) * 50}%`}
+                        opacity={danceOpacity}
+                        inert={rise > 0.35}
+                        showTopLeft
+                        showBottomRight={false}
+                      />
+                    ) : null}
+
+                    <ActivityPanel
+                      item={featured}
+                      title={copy.items[featured.titleKey]}
+                      tag={copy.tags[featured.tagKey]}
+                      className={featuredCardClass}
+                      style={featuredStyle}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="relative z-10 -mt-[90vh]">
+      <div className="relative z-10 sm:-mt-[90vh]">
         <MembershipAct membership={membership} />
       </div>
     </div>

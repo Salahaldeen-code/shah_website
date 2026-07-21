@@ -11,46 +11,57 @@ type ActiveLifeCollageProps = {
   copy: Dictionary["showcase"];
 };
 
-/** Small portrait frames — start fully on-screen, then drift under the title. */
+/** Small portrait frames — start fully on-screen, then drift under the title.
+ *  Phone: tucked close to the title and kept visible. sm+: spread toward the edges.
+ */
 const brandFrames = [
   {
     ...showcaseSideImages.left[0],
-    className: "left-[4%] top-[10%] w-[18%] sm:left-[5%] sm:w-[15%] md:w-[13%]",
+    className:
+      "left-[6%] top-[14%] w-[28%] max-w-[7.5rem] sm:left-[5%] sm:top-[10%] sm:w-[15%] sm:max-w-none md:w-[13%]",
     depth: 0.45,
     originX: "0vw",
     originY: "0vh",
     driftX: "18vw",
     driftY: "16vh",
+    phoneDriftX: "6vw",
+    phoneDriftY: "8vh",
   },
   {
     ...showcaseSideImages.left[1],
     className:
-      "left-[12%] bottom-[14%] w-[16%] sm:left-[14%] sm:w-[13%] md:w-[11%]",
+      "left-[8%] bottom-[12%] w-[26%] max-w-[7rem] sm:left-[14%] sm:bottom-[14%] sm:w-[13%] sm:max-w-none md:w-[11%]",
     depth: 0.65,
     originX: "0vw",
     originY: "0vh",
     driftX: "16vw",
     driftY: "-18vh",
+    phoneDriftX: "5vw",
+    phoneDriftY: "-7vh",
   },
   {
     ...showcaseSideImages.right[0],
     className:
-      "right-[12%] top-[12%] w-[16%] sm:right-[14%] sm:w-[13%] md:w-[11%]",
+      "right-[8%] top-[16%] w-[26%] max-w-[7rem] sm:right-[14%] sm:top-[12%] sm:w-[13%] sm:max-w-none md:w-[11%]",
     depth: 0.6,
     originX: "0vw",
     originY: "0vh",
     driftX: "-16vw",
     driftY: "18vh",
+    phoneDriftX: "-5vw",
+    phoneDriftY: "7vh",
   },
   {
     ...showcaseSideImages.right[1],
     className:
-      "right-[4%] bottom-[12%] w-[18%] sm:right-[5%] sm:w-[15%] md:w-[13%]",
+      "right-[6%] bottom-[10%] w-[28%] max-w-[7.5rem] sm:right-[5%] sm:bottom-[12%] sm:w-[15%] sm:max-w-none md:w-[13%]",
     depth: 0.5,
     originX: "0vw",
     originY: "0vh",
     driftX: "-18vw",
     driftY: "-16vh",
+    phoneDriftX: "-6vw",
+    phoneDriftY: "-8vh",
   },
 ] as const;
 
@@ -68,6 +79,20 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+function useIsPhone() {
+  const [isPhone, setIsPhone] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const sync = () => setIsPhone(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  return isPhone;
+}
+
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
@@ -75,6 +100,7 @@ function clamp(value: number, min = 0, max = 1) {
 export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const isPhone = useIsPhone();
   const [scrollProgress, setScrollProgress] = useState(0);
   const progress = reducedMotion ? 0.5 : scrollProgress;
 
@@ -118,8 +144,13 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
   // Ease the small frames under the title, then fade them out once they arrive.
   const underTitle = clamp(progress / 0.7);
   const underEase = underTitle * underTitle * (3 - 2 * underTitle);
-  // Hold visible while sliding in, then disappear after they're under the title.
-  const frameOpacity = underEase < 0.72 ? 1 : clamp(1 - (underEase - 0.72) / 0.28);
+  // Phone: keep frames visible beside the title until the glass settles.
+  // Desktop: fade after they slide under the title.
+  const frameOpacity = isPhone
+    ? Math.max(0, 1 - clamp((progress - 0.82) / 0.18))
+    : underEase < 0.72
+      ? 1
+      : clamp(1 - (underEase - 0.72) / 0.28);
 
   // Glass neon border only after scroll finishes (frames already under title / gone).
   const glassRaw = reducedMotion ? 1 : clamp((progress - 0.78) / 0.22);
@@ -139,13 +170,18 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
     >
       <div className="relative h-[240vh]">
         <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden">
-          {/* Photo layer — always behind the title */}
-          <div className="pointer-events-none absolute inset-0 z-0">
+          {/* Corner frames — phone: above veil so they stay visible beside the title */}
+          <div
+            className={`pointer-events-none absolute inset-0 ${
+              isPhone ? "z-[8]" : "z-0"
+            }`}
+          >
             {brandFrames.map((frame, index) => {
               const scale = 1 + underEase * frame.depth * 0.1;
-              // calc() blends origin → under-title position by scroll ease
-              const x = `calc(${frame.originX} + (${frame.driftX}) * ${underEase})`;
-              const y = `calc(${frame.originY} + (${frame.driftY}) * ${underEase})`;
+              const driftX = isPhone ? frame.phoneDriftX : frame.driftX;
+              const driftY = isPhone ? frame.phoneDriftY : frame.driftY;
+              const x = `calc(${frame.originX} + (${driftX}) * ${underEase})`;
+              const y = `calc(${frame.originY} + (${driftY}) * ${underEase})`;
 
               return (
                 <div
@@ -162,15 +198,17 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
                     src={frame.src}
                     alt={frame.alt}
                     fill
-                    sizes="(max-width: 768px) 22vw, 16vw"
-                    priority={index < 2}
+                    sizes="(max-width: 639px) 28vw, 16vw"
+                    priority
                     className="object-cover"
                   />
                 </div>
               );
             })}
+          </div>
 
-            {/* Activity photos scrolling behind the title */}
+          {/* Activity photos scrolling behind the title */}
+          <div className="pointer-events-none absolute inset-0 z-0">
             <div
               className="absolute inset-x-0 bottom-[-8%] mx-auto w-full max-w-[100rem] px-2 sm:px-3 md:px-4"
               style={{
@@ -211,7 +249,7 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
           {/* Soft veil so type stays readable over moving photos */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,rgb(0_0_0/0.45)_0%,rgb(0_0_0/0.15)_48%,transparent_75%)]"
+            className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,rgb(0_0_0/0.28)_0%,rgb(0_0_0/0.1)_48%,transparent_75%)] sm:bg-[radial-gradient(ellipse_at_center,rgb(0_0_0/0.45)_0%,rgb(0_0_0/0.15)_48%,transparent_75%)]"
           />
 
           {/* Title stays above the photos so frames slide under it */}
