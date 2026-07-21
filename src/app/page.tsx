@@ -1,7 +1,6 @@
 import { AboutSection } from "@/components/home/AboutSection";
 import { ActiveLifeSection } from "@/components/home/ActiveLifeSection";
 import { ActivitiesSection } from "@/components/home/ActivitiesSection";
-import { ContactSection } from "@/components/home/ContactSection";
 import { EditorialShowcaseSection } from "@/components/home/EditorialShowcaseSection";
 import { GallerySection } from "@/components/home/GallerySection";
 import { HeroSection } from "@/components/home/HeroSection";
@@ -26,7 +25,6 @@ export default async function HomePage() {
       <AboutSection />
       <ServicesSection />
       <PortfolioSection />
-      <ContactSection />
     </main>
   );
 }

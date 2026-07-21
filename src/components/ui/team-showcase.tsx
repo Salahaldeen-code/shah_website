@@ -20,9 +20,15 @@ type TeamShowcaseProps = {
 export default function TeamShowcase({ members }: TeamShowcaseProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const col1 = members.filter((_, i) => i % 3 === 0);
-  const col2 = members.filter((_, i) => i % 3 === 1);
-  const col3 = members.filter((_, i) => i % 3 === 2);
+  // Staggered collage: 2 columns for 4 people, 3 columns otherwise
+  const useTwoCols = members.length <= 4;
+  const col1 = useTwoCols
+    ? members.filter((_, i) => i % 2 === 0)
+    : members.filter((_, i) => i % 3 === 0);
+  const col2 = useTwoCols
+    ? members.filter((_, i) => i % 2 === 1)
+    : members.filter((_, i) => i % 3 === 1);
+  const col3 = useTwoCols ? [] : members.filter((_, i) => i % 3 === 2);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl select-none flex-col items-start gap-8 px-4 py-8 font-sans md:flex-row md:gap-10 md:px-6 lg:gap-14">
@@ -33,7 +39,7 @@ export default function TeamShowcase({ members }: TeamShowcaseProps) {
             <PhotoCard
               key={member.id}
               member={member}
-              className="h-[120px] w-[110px] sm:h-[140px] sm:w-[130px] md:h-[165px] md:w-[155px]"
+              className="h-[132px] w-[122px] sm:h-[155px] sm:w-[145px] md:h-[182px] md:w-[172px]"
               hoveredId={hoveredId}
               onHover={setHoveredId}
             />
@@ -45,28 +51,30 @@ export default function TeamShowcase({ members }: TeamShowcaseProps) {
             <PhotoCard
               key={member.id}
               member={member}
-              className="h-[132px] w-[122px] sm:h-[155px] sm:w-[145px] md:h-[182px] md:w-[172px]"
-              hoveredId={hoveredId}
-              onHover={setHoveredId}
-            />
-          ))}
-        </div>
-
-        <div className="mt-[22px] flex flex-col gap-2 sm:mt-[26px] md:mt-[32px] md:gap-3">
-          {col3.map((member) => (
-            <PhotoCard
-              key={member.id}
-              member={member}
               className="h-[125px] w-[115px] sm:h-[146px] sm:w-[136px] md:h-[172px] md:w-[162px]"
               hoveredId={hoveredId}
               onHover={setHoveredId}
             />
           ))}
         </div>
+
+        {col3.length > 0 ? (
+          <div className="mt-[22px] flex flex-col gap-2 sm:mt-[26px] md:mt-[32px] md:gap-3">
+            {col3.map((member) => (
+              <PhotoCard
+                key={member.id}
+                member={member}
+                className="h-[125px] w-[115px] sm:h-[146px] sm:w-[136px] md:h-[172px] md:w-[162px]"
+                hoveredId={hoveredId}
+                onHover={setHoveredId}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {/* Right: name list */}
-      <div className="flex w-full flex-1 flex-col gap-4 pt-0 sm:grid sm:grid-cols-2 md:flex md:flex-col md:gap-5 md:pt-2">
+      <div className="flex w-full flex-1 flex-col gap-4 pt-0 md:gap-5 md:pt-2">
         {members.map((member) => (
           <MemberRow
             key={member.id}
@@ -97,9 +105,9 @@ function PhotoCard({
   return (
     <div
       className={cn(
-        "flex-shrink-0 cursor-pointer overflow-hidden rounded-xl transition-opacity duration-400",
+        "flex-shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 border-brand-dark/20 shadow-[0_10px_28px_rgb(0_0_0/0.18)] transition-opacity duration-400",
         className,
-        isDimmed ? "opacity-60" : "opacity-100",
+        isDimmed ? "opacity-55" : "opacity-100",
       )}
       onMouseEnter={() => onHover(member.id)}
       onMouseLeave={() => onHover(null)}
@@ -112,7 +120,7 @@ function PhotoCard({
         style={{
           filter: isActive
             ? "grayscale(0) brightness(1)"
-            : "grayscale(1) brightness(0.77)",
+            : "grayscale(1) brightness(0.82)",
         }}
       />
     </div>
@@ -140,7 +148,7 @@ function MemberRow({
     <div
       className={cn(
         "cursor-pointer transition-opacity duration-300",
-        isDimmed ? "opacity-50" : "opacity-100",
+        isDimmed ? "opacity-45" : "opacity-100",
       )}
       onMouseEnter={() => onHover(member.id)}
       onMouseLeave={() => onHover(null)}
@@ -148,14 +156,14 @@ function MemberRow({
       <div className="flex items-center gap-2.5">
         <span
           className={cn(
-            "h-3 w-4 flex-shrink-0 rounded-[5px] transition-all duration-300",
-            isActive ? "w-5 bg-brand-yellow" : "bg-brand-yellow/25",
+            "h-3 w-4 flex-shrink-0 rounded-[5px] bg-brand-dark transition-all duration-300",
+            isActive ? "w-5" : "opacity-35",
           )}
         />
         <span
           className={cn(
-            "text-base leading-none font-semibold tracking-tight transition-colors duration-300 md:text-[18px]",
-            isActive ? "text-white" : "text-white/80",
+            "text-base leading-none font-semibold tracking-tight text-brand-dark transition-colors duration-300 md:text-[18px]",
+            isActive ? "opacity-100" : "opacity-85",
           )}
         >
           {member.name}
@@ -176,7 +184,7 @@ function MemberRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="rounded p-1 text-white/45 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-brand-yellow"
+                className="rounded p-1 text-brand-dark/50 transition-all duration-150 hover:scale-110 hover:bg-brand-dark/10 hover:text-brand-dark"
                 title="X / Twitter"
               >
                 <FaTwitter size={10} />
@@ -188,7 +196,7 @@ function MemberRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="rounded p-1 text-white/45 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-brand-yellow"
+                className="rounded p-1 text-brand-dark/50 transition-all duration-150 hover:scale-110 hover:bg-brand-dark/10 hover:text-brand-dark"
                 title="LinkedIn"
               >
                 <FaLinkedinIn size={10} />
@@ -200,7 +208,7 @@ function MemberRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="rounded p-1 text-white/45 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-brand-yellow"
+                className="rounded p-1 text-brand-dark/50 transition-all duration-150 hover:scale-110 hover:bg-brand-dark/10 hover:text-brand-dark"
                 title="Instagram"
               >
                 <FaInstagram size={10} />
@@ -212,7 +220,7 @@ function MemberRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="rounded p-1 text-white/45 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-brand-yellow"
+                className="rounded p-1 text-brand-dark/50 transition-all duration-150 hover:scale-110 hover:bg-brand-dark/10 hover:text-brand-dark"
                 title="Behance"
               >
                 <FaBehance size={10} />
@@ -222,7 +230,7 @@ function MemberRow({
         ) : null}
       </div>
 
-      <p className="mt-1.5 pl-[27px] text-[7px] font-medium tracking-[0.2em] text-white/45 uppercase md:text-[10px]">
+      <p className="mt-1.5 pl-[27px] text-[7px] font-medium tracking-[0.2em] text-brand-dark/55 uppercase md:text-[10px]">
         {member.role}
       </p>
     </div>

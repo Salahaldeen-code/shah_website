@@ -30,17 +30,7 @@ export function FooterBottom() {
           ))}
         </nav>
 
-        {bottom.partnerLabel ? (
-          <p
-            className="justify-self-center text-center font-display text-[0.6rem] tracking-[0.28em] uppercase opacity-60 sm:text-[0.65rem]"
-            style={{ color: colors.text }}
-            aria-label="Partner logos placeholder"
-          >
-            {bottom.partnerLabel}
-          </p>
-        ) : (
-          <span className="hidden sm:block" aria-hidden />
-        )}
+        <span className="hidden sm:block" aria-hidden />
 
         <div
           className="flex flex-col items-start gap-1 justify-self-start sm:items-end sm:justify-self-end sm:text-right"

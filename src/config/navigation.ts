@@ -7,14 +7,10 @@ import type { NavItem } from "@/types";
  */
 export const mainNavigation: NavItem[] = [
   { href: "/", labelKey: "home", type: "page" },
-  { href: "/#about", labelKey: "about", type: "section" },
-  { href: "/#services", labelKey: "services", type: "section" },
+  { href: "/about", labelKey: "about", type: "page" },
   { href: "/#programs", labelKey: "programs", type: "section" },
   { href: "/#activities", labelKey: "activities", type: "section" },
-  { href: "/#membership", labelKey: "membershipSection", type: "section" },
-  { href: "/gallery", labelKey: "galleryPage", type: "page" },
-  { href: "/#portfolio", labelKey: "portfolio", type: "section" },
-  { href: "/#contact", labelKey: "contact", type: "section" },
-  { href: "/about", labelKey: "aboutPage", type: "page" },
-  { href: "/membership", labelKey: "membershipPage", type: "page" },
+  { href: "/membership", labelKey: "membership", type: "page" },
+  { href: "/gallery", labelKey: "gallery", type: "page" },
+  { href: "/contact", labelKey: "contact", type: "page" },
 ];

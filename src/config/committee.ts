@@ -45,20 +45,4 @@ export const committeeMembers: CommitteeMember[] = [
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     social: { linkedin: "#" },
   },
-  {
-    id: "sports",
-    name: "Daniel Chong",
-    role: "Sports Director",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80",
-    social: { twitter: "#", linkedin: "#" },
-  },
-  {
-    id: "recreation",
-    name: "Aisyah Rahman",
-    role: "Recreation Officer",
-    image:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
-    social: { instagram: "#", linkedin: "#" },
-  },
 ];

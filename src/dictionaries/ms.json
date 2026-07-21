@@ -2,15 +2,11 @@
   "nav": {
     "home": "Laman Utama",
     "about": "Tentang",
-    "services": "Perkhidmatan",
     "programs": "Program",
     "activities": "Aktiviti",
-    "membershipSection": "Keahlian",
-    "portfolio": "Portfolio",
-    "galleryPage": "Galeri",
-    "contact": "Hubungi",
-    "aboutPage": "Halaman Tentang",
-    "membershipPage": "Halaman Keahlian"
+    "membership": "Keahlian",
+    "gallery": "Galeri",
+    "contact": "Hubungi"
   },
   "heading": {
     "homeIntro": "Tajuk bahagian"
@@ -189,6 +185,41 @@
     "ctaBody": "Jadi ahli dan buka akses kelas, program komuniti, serta keistimewaan dalam aplikasi PSR.",
     "ctaMembership": "Jadi ahli",
     "ctaActivities": "Terokai aktiviti"
+  },
+  "contactPage": {
+    "eyebrow": "Hubungi kami",
+    "title": "Kami sedia membantu",
+    "lead": "Hubungi Persatuan Sukan & Rekreasi untuk program, keahlian, acara, atau pertanyaan umum. Hantar mesej dan pasukan kami akan membalas anda.",
+    "detailsTitle": "Cara menghubungi",
+    "detailsLead": "Lebih suka terus berhubung? Gunakan e-mel, telefon, atau WhatsApp — atau isi borang dan kami akan membalas tidak lama lagi.",
+    "imageAlt": "Komuniti dan sukan Persatuan Sukan & Rekreasi",
+    "form": {
+      "title": "Hantar mesej",
+      "subtitle": "Beritahu kami bagaimana kami boleh membantu. Medan wajib perlu diisi sebelum menghantar.",
+      "name": "Nama penuh",
+      "namePlaceholder": "Nama anda",
+      "email": "E-mel",
+      "emailPlaceholder": "anda@contoh.com",
+      "phone": "Telefon (pilihan)",
+      "phonePlaceholder": "+60 12-345 6789",
+      "subject": "Subjek",
+      "subjectPlaceholder": "Apakah perkara ini?",
+      "message": "Mesej",
+      "messagePlaceholder": "Tulis mesej anda di sini…",
+      "submit": "Hantar mesej",
+      "submitting": "Menghantar…",
+      "note": "Kami biasanya membalas dalam 1–2 hari bekerja.",
+      "successTitle": "Mesej dihantar",
+      "successBody": "Terima kasih kerana menghubungi PSR. Kami telah menerima mesej anda dan akan membalas tidak lama lagi.",
+      "sendAnother": "Hantar mesej lain",
+      "errors": {
+        "name": "Sila masukkan nama anda",
+        "email": "Masukkan alamat e-mel yang sah",
+        "phone": "Masukkan nombor telefon yang sah",
+        "subject": "Sila masukkan subjek",
+        "message": "Sila tulis sekurang-kurangnya mesej ringkas"
+      }
+    }
   },
   "a11y": {
     "openMenu": "Buka menu",

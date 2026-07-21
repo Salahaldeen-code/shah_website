@@ -80,7 +80,7 @@ function computeRepulsionOffsets(
   if (!activeItem) return offsets;
 
   const activeSize = Math.round(
-    activeItem.sizePx * Math.min(Math.max(stageWidth / 1280, 1), 1.22),
+    activeItem.sizePx * Math.min(Math.max(stageWidth / 1280, 0.52), 1.12),
   );
   const activeCenter = getCircleCenter(
     activeItem,
@@ -93,7 +93,7 @@ function computeRepulsionOffsets(
     if (item.id === activeId) return;
 
     const size = Math.round(
-      item.sizePx * Math.min(Math.max(stageWidth / 1280, 1), 1.22),
+      item.sizePx * Math.min(Math.max(stageWidth / 1280, 0.52), 1.12),
     );
     const center = getCircleCenter(item, stageWidth, stageHeight, size);
     const dx = center.x - activeCenter.x;
@@ -213,9 +213,9 @@ export function SocialFooter() {
           onMouseLeave={handleStageLeave}
           className={cn(
             "relative mx-auto w-full",
-            layout === "stage" && "social-footer-stage",
+            layout === "stage" && "social-footer-stage overflow-visible pb-6 sm:pb-8",
             layout === "grid" &&
-              "social-footer-grid grid grid-cols-2 gap-x-4 gap-y-6 py-2 sm:gap-x-6 sm:gap-y-8",
+              "social-footer-grid grid grid-cols-2 place-items-center gap-x-3 gap-y-4 py-2 sm:gap-x-5 sm:gap-y-6",
           )}
           style={
             layout === "stage"
@@ -251,7 +251,7 @@ export function SocialFooter() {
           )}
         </section>
 
-        <h2 className="mx-auto mt-8 max-w-[52rem] text-center font-display text-[clamp(1.75rem,5.5vw,3.75rem)] leading-[0.95] tracking-[0.04em] uppercase sm:mt-10 md:mt-12">
+        <h2 className="relative z-10 mx-auto mt-4 max-w-[52rem] px-2 text-center font-display text-[clamp(1.35rem,4.8vw,3.75rem)] leading-[1.05] tracking-[0.04em] uppercase sm:mt-6 md:mt-8">
           {heading}
         </h2>
       </div>

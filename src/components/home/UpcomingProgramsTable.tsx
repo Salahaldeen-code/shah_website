@@ -11,10 +11,7 @@ import {
 } from "@/config/programs";
 import type { Locale } from "@/config/i18n";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-import {
-  formatScheduleLabel,
-  getUpcomingPrograms,
-} from "@/lib/programs";
+import { formatScheduleLabel, getUpcomingPrograms } from "@/lib/programs";
 
 type UpcomingProgramsTableProps = {
   locale: Locale;
@@ -69,7 +66,13 @@ function PinIcon({ className }: { className?: string }) {
         stroke="currentColor"
         strokeWidth="1.5"
       />
-      <circle cx="12" cy="9.5" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+      <circle
+        cx="12"
+        cy="9.5"
+        r="2.25"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
@@ -90,15 +93,12 @@ export function UpcomingProgramsTable({
     if (filter === "all") return true;
     return program.categoryKey === (filter as ProgramCategoryKey);
   });
-  const visiblePrograms = showAll
-    ? upcoming
-    : upcoming.slice(0, LIST_SLOTS);
+  const visiblePrograms = showAll ? upcoming : upcoming.slice(0, LIST_SLOTS);
   const canExpand = allUpcoming.length > LIST_SLOTS;
 
   return (
     <div
-      id="programs"
-      className={`programs-overlay scroll-mt-24 text-white ${className}`.trim()}
+      className={`programs-overlay text-white ${className}`.trim()}
       style={style}
     >
       <div className="mx-auto w-full max-w-[var(--container-max)] px-[var(--container-padding)] pt-8 pb-[calc(var(--content-bottom-pad)+0.75rem)] sm:pt-10">

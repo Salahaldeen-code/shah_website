@@ -184,6 +184,17 @@ export function ScrollImpactSection({
     >
       {/* Tall track = open → programs → close shutters */}
       <div className="relative h-[640vh]">
+        {/*
+          Native #programs target: placed so scroll progress ≈ 0.76
+          (table fully revealed, before shutters close).
+          progress = -top / (track - viewport) → top = progress * (640vh - 100svh)
+        */}
+        <div
+          id="programs"
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 h-px w-px"
+          style={{ top: "calc((640vh - 100svh) * 0.76)" }}
+        />
         <div className="sticky top-0 h-svh overflow-hidden">
           {/* Background photo */}
           <div

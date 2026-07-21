@@ -47,8 +47,11 @@ export function SocialCircle({
 
   const size =
     layout === "stage"
-      ? Math.round(item.sizePx * Math.min(Math.max(stageWidth / 1280, 1), 1.22))
-      : Math.min(item.sizePx * 0.82, 196);
+      ? Math.round(
+          item.sizePx *
+            Math.min(Math.max(stageWidth / 1280, 0.52), 1.12),
+        )
+      : Math.min(item.sizePx * 0.55, 168);
 
   useEffect(() => {
     item.images.forEach((src) => {
@@ -108,7 +111,7 @@ export function SocialCircle({
   const transform =
     layout === "stage"
       ? `translate3d(${repulsion.x}px, ${repulsion.y}px, 0) scale(${scale})`
-      : `translate3d(0, ${staggerY}px, 0) scale(${scale})`;
+      : `scale(${scale})`;
 
   const stageStyle: CSSProperties =
     layout === "stage"
@@ -124,7 +127,9 @@ export function SocialCircle({
           width: size,
           height: size,
           zIndex: isActive ? 20 : item.zIndex,
-          transform: `scale(${scale})`,
+          transform,
+          marginTop: Math.max(0, staggerY),
+          marginBottom: Math.max(0, -staggerY),
         };
 
   return (
@@ -187,7 +192,7 @@ export function SocialCircle({
 
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-black/15 font-display text-[clamp(3rem,10vw,5.5rem)] leading-none tracking-[0.06em] text-white uppercase"
+        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-black/15 font-display text-[clamp(2rem,8vw,5.5rem)] leading-none tracking-[0.06em] text-white uppercase"
         style={{ color: colors.circleLabel }}
       >
         {item.label}

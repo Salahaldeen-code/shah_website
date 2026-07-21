@@ -3,15 +3,11 @@ export type { Locale } from "@/config/i18n";
 export type NavLabelKey =
   | "home"
   | "about"
-  | "services"
   | "programs"
   | "activities"
-  | "membershipSection"
-  | "portfolio"
-  | "galleryPage"
-  | "contact"
-  | "aboutPage"
-  | "membershipPage";
+  | "membership"
+  | "gallery"
+  | "contact";
 
 export type NavItemType = "page" | "section";
 

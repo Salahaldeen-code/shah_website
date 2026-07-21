@@ -98,7 +98,20 @@ export function NavigationMenu({
                       ? "bg-nav-cta text-brand-yellow"
                       : "text-brand-yellow hover:bg-brand-red/15"
                   }`}
-                  onClick={onNavigate}
+                  onClick={(event) => {
+                    if (item.type === "section") {
+                      const hash = getHashFromHref(item.href);
+                      if (hash && pathname === "/") {
+                        event.preventDefault();
+                        window.history.pushState(null, "", hash);
+                        document
+                          .querySelector(hash)
+                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        window.dispatchEvent(new Event("hashchange"));
+                      }
+                    }
+                    onNavigate();
+                  }}
                 >
                   <span>{dictionary.nav[item.labelKey]}</span>
                   {item.type === "section" ? (

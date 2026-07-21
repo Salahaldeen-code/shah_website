@@ -77,10 +77,10 @@ export const socialFooterConfig = {
     imageTransitionMs: 480,
   },
 
-  /** Stage min-heights per breakpoint (px) */
+  /** Stage min-heights per breakpoint (px) — tall enough that circles don't cover the heading */
   stageMinHeight: {
-    desktop: 420,
-    tablet: 380,
+    desktop: 560,
+    tablet: 480,
     mobile: 0,
   },
 
@@ -92,10 +92,10 @@ export const socialFooterConfig = {
       href: "",
       images: [
         "/images/hero/image1.jpg",
-        "/images/hero/image2.jpg",
+        "/images/hero/image5.jpg",
       ],
-      sizePx: 295,
-      position: { left: 3, top: 6 },
+      sizePx: 280,
+      position: { left: 4, top: 4 },
       zIndex: 2,
       mobileOrder: 0,
       mobileStaggerPx: 0,
@@ -109,11 +109,11 @@ export const socialFooterConfig = {
         "/images/hero/image3.jpg",
         "/images/hero/image4.jpg",
       ],
-      sizePx: 310,
-      position: { left: 26, top: 32 },
+      sizePx: 295,
+      position: { left: 26, top: 22 },
       zIndex: 1,
       mobileOrder: 2,
-      mobileStaggerPx: 14,
+      mobileStaggerPx: 10,
     },
     {
       id: "yt",
@@ -121,14 +121,14 @@ export const socialFooterConfig = {
       name: "YouTube",
       href: "",
       images: [
-        "/images/hero/image5.jpg",
         "/images/hero/image6.jpg",
+        "/images/hero/image2.jpg",
       ],
-      sizePx: 335,
+      sizePx: 310,
       position: { left: 50, top: 0 },
       zIndex: 3,
       mobileOrder: 1,
-      mobileStaggerPx: -8,
+      mobileStaggerPx: -6,
     },
     {
       id: "tk",
@@ -136,14 +136,14 @@ export const socialFooterConfig = {
       name: "TikTok",
       href: "",
       images: [
-        "/images/hero/slide-1.png",
-        "/images/hero/slide-2.png",
+        "/images/hero/image2.jpg",
+        "/images/app/impact-triathlon.png",
       ],
-      sizePx: 295,
-      position: { left: 73, top: 26 },
+      sizePx: 280,
+      position: { left: 74, top: 18 },
       zIndex: 2,
       mobileOrder: 3,
-      mobileStaggerPx: 10,
+      mobileStaggerPx: 8,
     },
   ] satisfies readonly SocialCircleItem[],
 } as const;

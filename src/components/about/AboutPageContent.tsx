@@ -90,17 +90,17 @@ export function AboutPageContent({ copy }: AboutPageContentProps) {
       <section
         id="committee"
         aria-labelledby="committee-heading"
-        className="border-t border-white/10"
+        className="border-y border-brand-dark/15 bg-brand-yellow text-brand-dark"
       >
         <div className="mx-auto max-w-[var(--container-max)] px-[var(--container-padding)] py-14 sm:py-16 md:py-20">
           <div className="mb-8 text-center sm:mb-10">
             <h2
               id="committee-heading"
-              className="font-display text-3xl tracking-[0.08em] text-brand-yellow uppercase sm:text-4xl"
+              className="font-display text-3xl tracking-[0.08em] text-brand-dark uppercase sm:text-4xl"
             >
               {copy.committeeTitle}
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/65 sm:text-base">
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-brand-dark/70 sm:text-base">
               {copy.committeeSubtitle}
             </p>
           </div>
