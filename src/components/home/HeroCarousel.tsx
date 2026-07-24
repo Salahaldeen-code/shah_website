@@ -132,30 +132,63 @@ function preloadImage(src: string) {
   });
 }
 
+function youtubeEmbedSrc(videoId: string) {
+  const params = new URLSearchParams({
+    autoplay: "1",
+    mute: "1",
+    controls: "0",
+    playsinline: "1",
+    loop: "1",
+    playlist: videoId,
+    rel: "0",
+    modestbranding: "1",
+    iv_load_policy: "3",
+    disablekb: "1",
+  });
+  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+}
+
 function SlideLayer({
   slide,
   priority,
   clipPath,
   className = "",
+  playVideo = true,
 }: {
   slide: HeroSlide;
   priority?: boolean;
   clipPath?: string;
   className?: string;
+  /** When false, show poster only (reduced motion / inactive). */
+  playVideo?: boolean;
 }) {
+  const showVideo = Boolean(slide.youtubeId && playVideo);
+
   return (
     <div
       className={`absolute inset-0 ${className}`}
       style={clipPath ? { clipPath } : undefined}
     >
-      <Image
-        src={slide.src}
-        alt={slide.alt}
-        fill
-        priority={priority}
-        sizes="100vw"
-        className="object-cover"
-      />
+      {showVideo && slide.youtubeId ? (
+        <div className="absolute inset-0 overflow-hidden bg-brand-dark">
+          <iframe
+            title={slide.alt}
+            src={youtubeEmbedSrc(slide.youtubeId)}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen={false}
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 border-0"
+          />
+        </div>
+      ) : (
+        <Image
+          src={slide.src}
+          alt={slide.alt}
+          fill
+          priority={priority}
+          sizes="100vw"
+          className="object-cover"
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/25 to-brand-red/20" />
     </div>
   );
@@ -394,6 +427,7 @@ export function HeroCarousel({
               key={imageA.id}
               slide={imageA}
               priority={pairIndex === 0}
+              playVideo={false}
               className={`transition-opacity duration-500 ease-out ${
                 progress < heroCarouselConfig.midpoint
                   ? "opacity-100"
@@ -404,6 +438,7 @@ export function HeroCarousel({
               key={imageB.id}
               slide={imageB}
               priority
+              playVideo={false}
               className={`transition-opacity duration-500 ease-out ${
                 progress >= heroCarouselConfig.midpoint
                   ? "opacity-100"

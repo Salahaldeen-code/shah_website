@@ -1,8 +1,18 @@
 export type HeroSlide = {
   id: string;
+  /** Image path, or poster/fallback when `youtubeId` is set. */
   src: string;
   alt: string;
+  /**
+   * YouTube video id (e.g. from youtu.be/VIDEO_ID).
+   * When set, the slide plays this video instead of showing a still image.
+   * Swap this value to use a different video later.
+   */
+  youtubeId?: string;
 };
+
+/** Shared YouTube id for even slides (2, 4, 6). Change this one place to swap all. */
+export const heroYoutubeVideoId = "L3374C3OyrY";
 
 export const heroSlides: HeroSlide[] = [
   {
@@ -12,8 +22,9 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     id: "slide-2",
-    src: "/images/hero/image2.jpg",
-    alt: "Hero slide 2",
+    src: `https://img.youtube.com/vi/${heroYoutubeVideoId}/hqdefault.jpg`,
+    alt: "Hero video slide 2",
+    youtubeId: heroYoutubeVideoId,
   },
   {
     id: "slide-3",
@@ -22,8 +33,9 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     id: "slide-4",
-    src: "/images/hero/image4.jpg",
-    alt: "Hero slide 4",
+    src: `https://img.youtube.com/vi/${heroYoutubeVideoId}/hqdefault.jpg`,
+    alt: "Hero video slide 4",
+    youtubeId: heroYoutubeVideoId,
   },
   {
     id: "slide-5",
@@ -32,8 +44,9 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     id: "slide-6",
-    src: "/images/hero/image6.jpg",
-    alt: "Hero slide 6",
+    src: `https://img.youtube.com/vi/${heroYoutubeVideoId}/hqdefault.jpg`,
+    alt: "Hero video slide 6",
+    youtubeId: heroYoutubeVideoId,
   },
 ];
 
@@ -50,7 +63,7 @@ export const heroPairs: readonly [number, number][] = [
  */
 export const heroCarouselConfig = {
   /** Uninterrupted fill duration for one progress line. */
-  pairCycleMs: 7000,
+  pairCycleMs: 16000,
   /** Midpoint where bars close (~50%). Same as phaseEnds.openHold. */
   midpoint: 0.5,
   phaseEnds: {
