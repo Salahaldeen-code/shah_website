@@ -33,6 +33,21 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const postgresUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const isVercel = Boolean(process.env.VERCEL);
+const isProd = process.env.NODE_ENV === "production";
+
+if (isVercel && !postgresUrl) {
+  throw new Error(
+    "Missing POSTGRES_URL (or DATABASE_URL). Set it in the Vercel project env vars — SQLite cannot run on Vercel.",
+  );
+}
+
+if (isVercel && !process.env.PAYLOAD_SECRET) {
+  throw new Error(
+    "Missing PAYLOAD_SECRET. Set a long random string in the Vercel project env vars.",
+  );
+}
+
 const cloudinaryCredentials = readCloudinaryCredentials();
 const blobToken = cloudinaryCredentials
   ? undefined
@@ -94,6 +109,9 @@ const globals = [
 }));
 
 export default buildConfig({
+  serverURL:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (isVercel ? "https://shah-website-ayc1.vercel.app" : "http://localhost:3000"),
   admin: {
     user: Users.slug,
     importMap: {
@@ -117,8 +135,8 @@ export default buildConfig({
         pool: {
           connectionString: postgresUrl,
         },
-        // Push schema on boot until formal migrations are committed
-        push: true,
+        // Schema push is for local/dev only — never on every Vercel cold start
+        push: !isProd,
       })
     : sqliteAdapter({
         client: {
