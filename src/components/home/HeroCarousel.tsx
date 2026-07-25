@@ -132,22 +132,6 @@ function preloadImage(src: string) {
   });
 }
 
-function youtubeEmbedSrc(videoId: string) {
-  const params = new URLSearchParams({
-    autoplay: "1",
-    mute: "1",
-    controls: "0",
-    playsinline: "1",
-    loop: "1",
-    playlist: videoId,
-    rel: "0",
-    modestbranding: "1",
-    iv_load_policy: "3",
-    disablekb: "1",
-  });
-  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
-}
-
 function SlideLayer({
   slide,
   priority,
@@ -162,21 +146,36 @@ function SlideLayer({
   /** When false, show poster only (reduced motion / inactive). */
   playVideo?: boolean;
 }) {
-  const showVideo = Boolean(slide.youtubeId && playVideo);
+  const showVideo = Boolean(slide.video && playVideo);
 
   return (
     <div
       className={`absolute inset-0 ${className}`}
       style={clipPath ? { clipPath } : undefined}
     >
-      {showVideo && slide.youtubeId ? (
+      {showVideo && slide.video ? (
         <div className="absolute inset-0 overflow-hidden bg-brand-dark">
-          <iframe
-            title={slide.alt}
-            src={youtubeEmbedSrc(slide.youtubeId)}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen={false}
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 border-0"
+          {/* Poster paints immediately from local images; video loads from same origin. */}
+          <Image
+            src={slide.src}
+            alt=""
+            fill
+            priority={priority}
+            sizes="100vw"
+            aria-hidden
+            className="object-cover"
+          />
+          <video
+            key={slide.video}
+            className="absolute inset-0 h-full w-full object-cover"
+            src={slide.video}
+            poster={slide.src}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label={slide.alt}
           />
         </div>
       ) : (
