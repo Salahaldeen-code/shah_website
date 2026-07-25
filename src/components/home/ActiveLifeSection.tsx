@@ -1,10 +1,16 @@
 import { ActiveLifeCollage } from "@/components/home/ActiveLifeCollage";
-import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { getCmsShowcase } from "@/lib/cms";
+import { getLocale } from "@/lib/i18n/locale";
 
-type ActiveLifeSectionProps = {
-  copy: Dictionary["showcase"];
-};
+export async function ActiveLifeSection() {
+  const locale = await getLocale();
+  const showcase = await getCmsShowcase(locale);
 
-export function ActiveLifeSection({ copy }: ActiveLifeSectionProps) {
-  return <ActiveLifeCollage copy={copy} />;
+  return (
+    <ActiveLifeCollage
+      copy={showcase.copy}
+      sideImages={showcase.sideImages}
+      gridImages={showcase.gridImages}
+    />
+  );
 }

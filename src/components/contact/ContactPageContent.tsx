@@ -5,9 +5,13 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 type ContactPageContentProps = {
   copy: Dictionary["contactPage"];
+  image?: string;
 };
 
-export function ContactPageContent({ copy }: ContactPageContentProps) {
+export function ContactPageContent({
+  copy,
+  image = "/images/app/contact.jpg",
+}: ContactPageContentProps) {
   return (
     <div className="relative">
       <section className="relative overflow-hidden border-b border-white/10">
@@ -52,7 +56,7 @@ export function ContactPageContent({ copy }: ContactPageContentProps) {
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch lg:gap-12">
           <div className="relative h-full min-h-[16rem] overflow-hidden bg-brand-surface sm:min-h-[20rem] lg:min-h-0">
             <Image
-              src="/images/app/contact.jpg"
+              src={image}
               alt={copy.imageAlt}
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { GalleryIndex } from "@/components/gallery/GalleryIndex";
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getCmsGalleryAlbums, getCmsGalleryUi, getCmsProgramsUi } from "@/lib/cms";
 import { getLocale } from "@/lib/i18n/locale";
 
 export const metadata: Metadata = {
@@ -12,14 +12,19 @@ export const metadata: Metadata = {
 
 export default async function GalleryPage() {
   const locale = await getLocale();
-  const dictionary = await getDictionary(locale);
+  const [copy, programsCopy, albums] = await Promise.all([
+    getCmsGalleryUi(locale),
+    getCmsProgramsUi(locale),
+    getCmsGalleryAlbums(locale),
+  ]);
 
   return (
     <main className="min-h-svh bg-brand-dark pb-[var(--content-bottom-pad)] text-white">
       <GalleryIndex
         locale={locale}
-        copy={dictionary.gallery}
-        programsCopy={dictionary.programs}
+        copy={copy}
+        programsCopy={programsCopy}
+        albums={albums}
       />
     </main>
   );

@@ -2,23 +2,31 @@ import Image from "next/image";
 import Link from "next/link";
 
 import TeamShowcase from "@/components/ui/team-showcase";
-import { committeeMembers } from "@/config/committee";
+import type { CommitteeMember } from "@/config/committee";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 type AboutPageContentProps = {
   copy: Dictionary["aboutPage"];
+  heroImage?: string;
+  storyImage?: string;
+  committee?: CommitteeMember[];
 };
 
 const pillarKeys = ["community", "access", "active"] as const;
 
-export function AboutPageContent({ copy }: AboutPageContentProps) {
+export function AboutPageContent({
+  copy,
+  heroImage = "/images/hero/image5.jpg",
+  storyImage = "/images/hero/image6.jpg",
+  committee = [],
+}: AboutPageContentProps) {
   return (
     <div className="relative">
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
           <Image
-            src="/images/hero/image5.jpg"
+            src={heroImage}
             alt=""
             fill
             priority
@@ -56,7 +64,7 @@ export function AboutPageContent({ copy }: AboutPageContentProps) {
             </p>
             <div className="relative mt-8 aspect-[16/10] overflow-hidden bg-brand-surface">
               <Image
-                src="/images/hero/image6.jpg"
+                src={storyImage}
                 alt=""
                 fill
                 sizes="(max-width: 1024px) 100vw, 55vw"
@@ -104,7 +112,7 @@ export function AboutPageContent({ copy }: AboutPageContentProps) {
               {copy.committeeSubtitle}
             </p>
           </div>
-          <TeamShowcase members={committeeMembers} />
+          <TeamShowcase members={committee} />
         </div>
       </section>
 

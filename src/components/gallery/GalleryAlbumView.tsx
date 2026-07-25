@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { GalleryAlbum } from "@/config/gallery";
 import type { Locale } from "@/config/i18n";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { CmsGalleryAlbum } from "@/lib/cms/gallery";
 
 type GalleryAlbumViewProps = {
-  album: GalleryAlbum;
+  album: CmsGalleryAlbum;
   locale: Locale;
   copy: Dictionary["gallery"];
   programsCopy: Dictionary["programs"];
@@ -19,7 +19,6 @@ export function GalleryAlbumView({
   programsCopy,
 }: GalleryAlbumViewProps) {
   const intlLocale = locale === "ms" ? "ms-MY" : "en-MY";
-  const albumCopy = copy.albums[album.slug];
   const dateLabel = new Date(album.date).toLocaleDateString(intlLocale, {
     weekday: "long",
     day: "numeric",
@@ -58,7 +57,7 @@ export function GalleryAlbumView({
             {programsCopy.categories[album.categoryKey]}
           </p>
           <h1 className="mt-2 max-w-3xl font-display text-[clamp(2.2rem,7vw,4.25rem)] leading-[0.92] tracking-[0.04em] text-white uppercase">
-            {albumCopy.title}
+            {album.title}
           </h1>
 
           <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/70">
@@ -72,7 +71,7 @@ export function GalleryAlbumView({
               <dt className="text-[0.58rem] tracking-[0.16em] text-white/40 uppercase">
                 {copy.labels.venue}
               </dt>
-              <dd className="mt-1">{programsCopy.venues[album.venueKey]}</dd>
+              <dd className="mt-1">{album.venue}</dd>
             </div>
             <div>
               <dt className="text-[0.58rem] tracking-[0.16em] text-white/40 uppercase">
@@ -85,7 +84,7 @@ export function GalleryAlbumView({
           </dl>
 
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/75">
-            {albumCopy.description}
+            {album.description}
           </p>
         </div>
       </header>
@@ -104,7 +103,7 @@ export function GalleryAlbumView({
               <div className="relative aspect-[4/3] w-full">
                 <Image
                   src={src}
-                  alt={`${albumCopy.title} — ${index + 1}`}
+                  alt={`${album.title} — ${index + 1}`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover"

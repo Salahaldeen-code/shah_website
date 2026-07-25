@@ -5,12 +5,21 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { UpcomingProgramsTable } from "@/components/home/UpcomingProgramsTable";
 import type { Locale } from "@/config/i18n";
-import { impactImages } from "@/config/impact";
+import { impactImages as defaultImpactImages } from "@/config/impact";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { CmsProgram } from "@/lib/cms/programs";
+
+type ImpactImages = {
+  background: { src: string; alt: string };
+  floatLeft: { src: string; alt: string };
+  floatRight: { src: string; alt: string };
+};
 
 type ScrollImpactSectionProps = {
   copy: Dictionary["impact"];
   programsCopy: Dictionary["programs"];
+  programs?: CmsProgram[];
+  images?: ImpactImages | null;
   locale: Locale;
 };
 
@@ -68,13 +77,20 @@ function FloatingDisk({
 export function ScrollImpactSection({
   copy,
   programsCopy,
+  programs,
+  images,
   locale,
 }: ScrollImpactSectionProps) {
+  const impactImages = images ?? {
+    background: defaultImpactImages.background,
+    floatLeft: defaultImpactImages.floatLeft,
+    floatRight: defaultImpactImages.floatRight,
+  };
   const sectionRef = useRef<HTMLDivElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const [scrollProgress, setScrollProgress] = useState(0);
-  // Reduced motion: photo + programs docked (no close scrubbing)
-  const raw = reducedMotion ? 0.8 : scrollProgress;
+  // Reduced motion: photo + programs docked
+  const raw = reducedMotion ? 1 : scrollProgress;
   const progress = smooth(raw);
 
   useEffect(() => {
@@ -108,47 +124,40 @@ export function ScrollImpactSection({
     };
   }, [reducedMotion]);
 
-  // Timeline: open story → middle split reveal → programs → close from middle
-  const settle = smooth(range(raw, 0, 0.12));
-  const stageB = smooth(range(raw, 0.14, 0.34));
-  const split = smooth(range(raw, 0.36, 0.55));
-  const fullReveal = smooth(range(raw, 0.52, 0.68));
-  const programsIn = smooth(range(raw, 0.68, 0.84));
-  const closeProgress = smooth(range(raw, 0.84, 1));
-
-  const programsReveal = programsIn * (1 - closeProgress);
+  // Timeline: open story → middle split reveal → programs (no closing shutters)
+  const settle = smooth(range(raw, 0, 0.14));
+  const stageB = smooth(range(raw, 0.16, 0.38));
+  const split = smooth(range(raw, 0.4, 0.6));
+  const fullReveal = smooth(range(raw, 0.58, 0.75));
+  const programsReveal = smooth(range(raw, 0.75, 1));
   const programsOffset = (1 - programsReveal) * 100;
 
-  // Yellow opacity: fades out for photo, returns for close
-  const yellowOpacity = Math.max(1 - fullReveal * 0.96, closeProgress);
+  // Yellow fades out as the photo takes over
+  const yellowOpacity = 1 - fullReveal * 0.96;
 
   // Stage A: SPORTS hero → Stage B: clear eyebrow above STRONG (no muddy overlap)
-  const lineAOpacity = clamp(1 - fullReveal) * (1 - closeProgress);
+  const lineAOpacity = clamp(1 - fullReveal);
   const lineAScale = 1 - stageB * 0.78;
   const lineAY = (1 - settle) * 40 + stageB * -36; // vh units applied in transform
   const lineATracking = 0.02 + stageB * 0.22;
 
-  const lineBOpacity = smooth(range(raw, 0.16, 0.3)) * (1 - fullReveal) * (1 - closeProgress * 0.5);
+  const lineBOpacity = smooth(range(raw, 0.18, 0.34)) * (1 - fullReveal);
   const lineBScale = 0.52 + stageB * 0.48;
   const lineBY = (1 - stageB) * 18; // vh
 
   // GO exits as GET lands low-left — reads as “GET STRONG”
-  const scriptAOpacity =
-    (1 - stageB * 0.95) * (1 - fullReveal) * (1 - closeProgress);
+  const scriptAOpacity = (1 - stageB * 0.95) * (1 - fullReveal);
   const scriptBOpacity =
-    smooth(range(raw, 0.2, 0.34)) * (1 - fullReveal) * (1 - closeProgress);
+    smooth(range(raw, 0.22, 0.38)) * (1 - fullReveal);
   const scriptAY = (1 - settle) * 3 - stageB * 8; // vh
   const scriptBX = -18 + stageB * 4; // %
   const scriptBY = 8 - stageB * 2; // vh
 
-  // Only middle-open: yellow panels peel from center (and shut the same way)
-  const isClosing = closeProgress > 0.01;
-  const openFromMiddle = isClosing ? 1 - closeProgress : split;
+  // Yellow panels peel open from the center and stay open
+  const openFromMiddle = split;
   const leftBand = 50 - openFromMiddle * 40;
   const rightBand = 50 - openFromMiddle * 40;
-  const centerBand = 100 - leftBand - rightBand;
-  const showSplit =
-    isClosing || (split > 0.02 && fullReveal < 0.92);
+  const showSplit = split > 0.02 && fullReveal < 0.92;
 
   // Solid yellow before the middle opens — no stripe reveal
   const showYellowOverlay = !showSplit && yellowOpacity > 0.02;
@@ -158,19 +167,14 @@ export function ScrollImpactSection({
   const leftFloatY = -8 + progress * -6;
   const leftFloatScale = 0.9 + settle * 0.08 + stageB * 0.04;
   const leftFloatOpacity = clamp(
-    (0.9 + settle * 0.1 - fullReveal * 0.4) *
-      (1 - programsReveal * 0.4) *
-      (1 - closeProgress),
+    (0.9 + settle * 0.1 - fullReveal * 0.4) * (1 - programsReveal * 0.4),
   );
 
-  const rightFloatIn = smooth(range(raw, 0.2, 0.36));
+  const rightFloatIn = smooth(range(raw, 0.22, 0.4));
   const rightFloatX = 34 - rightFloatIn * 8 - progress * 3;
   const rightFloatY = 22 - rightFloatIn * 6;
   const rightFloatOpacity =
-    rightFloatIn *
-    (1 - fullReveal * 0.35) *
-    (1 - programsReveal * 0.4) *
-    (1 - closeProgress);
+    rightFloatIn * (1 - fullReveal * 0.35) * (1 - programsReveal * 0.4);
   const rightFloatScale = 0.78 + rightFloatIn * 0.22;
 
   const bgScale = 1.12 - openFromMiddle * 0.1;
@@ -182,25 +186,25 @@ export function ScrollImpactSection({
       aria-labelledby="impact-heading"
       className="relative bg-impact-yellow text-brand-dark"
     >
-      {/* Tall track = open → programs → close shutters */}
-      <div className="relative h-[640vh]">
+      {/* Tall track = open story → programs docked */}
+      <div className="relative h-[520vh]">
         {/*
-          Native #programs target: placed so scroll progress ≈ 0.76
-          (table fully revealed, before shutters close).
-          progress = -top / (track - viewport) → top = progress * (640vh - 100svh)
+          Native #programs target: placed so scroll progress ≈ 0.95
+          (table fully revealed at end of section).
+          progress = -top / (track - viewport) → top = progress * (520vh - 100svh)
         */}
         <div
           id="programs"
           aria-hidden="true"
           className="pointer-events-none absolute left-0 h-px w-px"
-          style={{ top: "calc((640vh - 100svh) * 0.76)" }}
+          style={{ top: "calc((520vh - 100svh) * 0.95)" }}
         />
         <div className="sticky top-0 h-svh overflow-hidden">
-          {/* Background photo */}
+          {/* Background photo — single full-bleed layer (no duplicate crop = no seam) */}
           <div
             className="absolute inset-0 z-0"
             style={{
-              opacity: Math.max(openFromMiddle, fullReveal),
+              opacity: showSplit || fullReveal > 0.02 ? 1 : 0,
               transform: `scale(${bgScale})`,
               willChange: "transform, opacity",
             }}
@@ -217,7 +221,7 @@ export function ScrollImpactSection({
               aria-hidden="true"
               className="absolute inset-0 bg-black/30"
               style={{
-                opacity: fullReveal * 0.22 * (1 - closeProgress),
+                opacity: fullReveal * 0.22,
               }}
             />
           </div>
@@ -238,31 +242,16 @@ export function ScrollImpactSection({
                 className="absolute top-0 bottom-0 left-0 z-[2] bg-impact-yellow"
                 style={{
                   width: `${leftBand}%`,
-                  opacity: isClosing ? 1 : yellowOpacity * (1 - fullReveal),
+                  opacity: yellowOpacity * (1 - fullReveal),
                 }}
               />
               <div
                 className="absolute top-0 right-0 bottom-0 z-[2] bg-impact-yellow"
                 style={{
                   width: `${rightBand}%`,
-                  opacity: isClosing ? 1 : yellowOpacity * (1 - fullReveal),
+                  opacity: yellowOpacity * (1 - fullReveal),
                 }}
               />
-              <div
-                className="absolute top-0 bottom-0 z-[1] overflow-hidden"
-                style={{ left: `${leftBand}%`, width: `${centerBand}%` }}
-              >
-                <div className="relative h-full w-full">
-                  <Image
-                    src={impactImages.background.src}
-                    alt=""
-                    fill
-                    sizes="50vw"
-                    className="object-cover object-center"
-                    aria-hidden
-                  />
-                </div>
-              </div>
             </>
           )}
 
@@ -271,7 +260,7 @@ export function ScrollImpactSection({
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-[3]"
             style={{
-              opacity: (1 - fullReveal) * (1 - closeProgress) * 0.7,
+              opacity: (1 - fullReveal) * 0.7,
               background:
                 "radial-gradient(ellipse 70% 55% at 50% 48%, transparent 30%, rgb(0 0 0 / 0.1) 100%)",
             }}
@@ -373,18 +362,21 @@ export function ScrollImpactSection({
             />
           </div>
 
-          {/* Upcoming programs — slides up, then down as shutters close */}
+          {/* Upcoming programs — slides up and stays */}
           <div
             className="absolute inset-x-0 bottom-0 z-40"
             style={{
               transform: `translate3d(0, ${programsOffset}%, 0)`,
               opacity: programsReveal > 0.02 ? 1 : 0,
-              pointerEvents:
-                programsReveal > 0.55 && closeProgress < 0.2 ? "auto" : "none",
+              pointerEvents: programsReveal > 0.55 ? "auto" : "none",
               willChange: "transform",
             }}
           >
-            <UpcomingProgramsTable locale={locale} copy={programsCopy} />
+            <UpcomingProgramsTable
+              locale={locale}
+              copy={programsCopy}
+              programs={programs}
+            />
           </div>
         </div>
       </div>

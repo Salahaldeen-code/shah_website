@@ -6,25 +6,28 @@
   --muted: #1a1a1a;
   --border: #2a2a2a;
 
-  --brand-red: #e11d2e;
-  --brand-red-dark: #b01220;
-  --brand-yellow: #f5c518;
-  --brand-yellow-soft: #ffd54a;
+  /* Logo palette — Persatuan Sukan & Rekreasi Bandar Putra Permai */
+  --brand-red: #dc0a00;
+  --brand-red-dark: #a00800;
+  --brand-yellow: #fac814;
+  --brand-yellow-soft: #ffd84a;
+  --brand-blue: #004baa;
+  --brand-blue-soft: #1a6bc4;
   --brand-dark: #0a0a0a;
   --brand-surface: #141414;
 
-  /* Active Life showcase (reference collage) */
-  --showcase-teal: #00595e;
-  --showcase-orange: #ff6600;
+  /* Active Life showcase accents (logo blue + red) */
+  --showcase-teal: var(--brand-blue);
+  --showcase-orange: var(--brand-red);
 
   /* Impact scroll section */
   --impact-yellow: var(--brand-yellow);
 
-  --nav-fg: #f5c518;
-  --nav-bg: #0a0a0a;
+  --nav-fg: var(--brand-yellow);
+  --nav-bg: var(--brand-dark);
   --nav-overlay: rgb(0 0 0 / 0.72);
   --nav-panel: #0f0f0f;
-  --nav-divider: rgb(245 197 24 / 0.28);
+  --nav-divider: rgb(250 200 20 / 0.28);
   --nav-cta: #1a0a0c;
 
   --carousel-indicator: rgb(255 255 255 / 0.35);
@@ -54,6 +57,8 @@
   --color-brand-red-dark: var(--brand-red-dark);
   --color-brand-yellow: var(--brand-yellow);
   --color-brand-yellow-soft: var(--brand-yellow-soft);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-soft: var(--brand-blue-soft);
   --color-brand-dark: var(--brand-dark);
   --color-brand-surface: var(--brand-surface);
   --color-showcase-teal: var(--showcase-teal);
@@ -192,13 +197,11 @@ body {
   padding: 1.5px;
   background: linear-gradient(
     135deg,
-    #3de7ff 0%,
-    #5eefff 14%,
-    #9af5ff 30%,
-    rgb(255 255 255 / 0.65) 50%,
-    #ffb040 70%,
-    #ff7a18 86%,
-    #ff6600 100%
+    var(--brand-blue-soft) 0%,
+    var(--brand-blue) 18%,
+    rgb(255 255 255 / 0.55) 48%,
+    var(--brand-yellow) 72%,
+    var(--brand-red) 100%
   );
   opacity: var(--glass-reveal);
   -webkit-mask:
@@ -210,10 +213,10 @@ body {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   box-shadow:
-    -8px -6px 26px rgb(61 231 255 / 0.45),
-    8px 6px 26px rgb(255 102 0 / 0.45),
-    -2px 0 14px rgb(61 231 255 / 0.35),
-    2px 0 14px rgb(255 102 0 / 0.35);
+    -8px -6px 26px rgb(0 75 170 / 0.4),
+    8px 6px 26px rgb(220 10 0 / 0.4),
+    -2px 0 14px rgb(0 75 170 / 0.3),
+    2px 0 14px rgb(250 200 20 / 0.28);
 }
 
 .showcase-glass-border::before {
@@ -223,11 +226,11 @@ body {
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    rgb(61 231 255 / 0.75) 0%,
-    rgb(61 231 255 / 0.2) 28%,
+    rgb(0 75 170 / 0.75) 0%,
+    rgb(0 75 170 / 0.2) 28%,
     rgb(255 255 255 / 0.1) 50%,
-    rgb(255 102 0 / 0.2) 72%,
-    rgb(255 102 0 / 0.75) 100%
+    rgb(250 200 20 / 0.25) 72%,
+    rgb(220 10 0 / 0.75) 100%
   );
   filter: blur(14px);
   opacity: calc(0.85 * var(--glass-reveal));
@@ -266,7 +269,7 @@ body {
 /* Membership registration form panel */
 .membership-form-panel {
   border-radius: 1.15rem;
-  border: 1px solid rgb(245 197 24 / 0.45);
+  border: 1px solid rgb(250 200 20 / 0.45);
   background:
     linear-gradient(
       165deg,
@@ -276,8 +279,8 @@ body {
     ),
     rgb(14 14 16 / 0.88);
   box-shadow:
-    0 0 0 1px rgb(245 197 24 / 0.08),
-    0 0 40px rgb(245 197 24 / 0.12),
+    0 0 0 1px rgb(250 200 20 / 0.08),
+    0 0 40px rgb(250 200 20 / 0.12),
     0 28px 70px rgb(0 0 0 / 0.5);
 }
 
@@ -353,7 +356,7 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgb(245 197 24 / 0.45) transparent;
+  scrollbar-color: rgb(250 200 20 / 0.45) transparent;
 }
 
 @media (min-width: 640px) {

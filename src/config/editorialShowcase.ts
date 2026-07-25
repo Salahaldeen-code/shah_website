@@ -1,6 +1,6 @@
 /**
- * Editorial stepped showcase — text, colors, scroll timing, and rope SVG.
- * Edit this file to change copy and motion without touching components.
+ * Editorial stepped showcase — colors, scroll timing, and rope SVG.
+ * Text copy (TRAIN / COMPETE / EVOLVE) is edited in CMS → Home → Editorial Showcase.
  */
 export const editorialShowcaseConfig = {
   topText: "TRAIN",
@@ -12,13 +12,13 @@ export const editorialShowcaseConfig = {
     /** Section background */
     background: "#050505",
     /** Stepped block fill */
-    shape: "#f5c518",
+    shape: "#fac814",
     /** Main headline text inside blocks */
     text: "#0a0a0a",
     /** Handwritten overlay */
     overlay: "#ffffff",
     /** Flowing rope stroke */
-    rope: "#f5c518",
+    rope: "#fac814",
   },
 
   /**

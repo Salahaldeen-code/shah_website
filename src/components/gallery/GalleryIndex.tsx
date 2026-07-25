@@ -1,17 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { galleryAlbums } from "@/config/gallery";
 import type { Locale } from "@/config/i18n";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { CmsGalleryAlbum } from "@/lib/cms/gallery";
 
 type GalleryIndexProps = {
   locale: Locale;
   copy: Dictionary["gallery"];
   programsCopy: Dictionary["programs"];
+  albums: CmsGalleryAlbum[];
 };
 
-export function GalleryIndex({ locale, copy, programsCopy }: GalleryIndexProps) {
+export function GalleryIndex({
+  locale,
+  copy,
+  programsCopy,
+  albums,
+}: GalleryIndexProps) {
   const intlLocale = locale === "ms" ? "ms-MY" : "en-MY";
 
   return (
@@ -32,8 +38,7 @@ export function GalleryIndex({ locale, copy, programsCopy }: GalleryIndexProps) 
 
       <div className="mx-auto max-w-[var(--container-max)] px-[var(--container-padding)] py-12 sm:py-16">
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {galleryAlbums.map((album) => {
-            const albumCopy = copy.albums[album.slug];
+          {albums.map((album) => {
             const dateLabel = new Date(album.date).toLocaleDateString(
               intlLocale,
               { day: "numeric", month: "long", year: "numeric" },
@@ -48,7 +53,7 @@ export function GalleryIndex({ locale, copy, programsCopy }: GalleryIndexProps) 
                   <div className="relative aspect-[16/10] overflow-hidden bg-brand-surface">
                     <Image
                       src={album.cover}
-                      alt={albumCopy.title}
+                      alt={album.title}
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
@@ -63,15 +68,15 @@ export function GalleryIndex({ locale, copy, programsCopy }: GalleryIndexProps) 
                   </div>
                   <div className="p-4 sm:p-5">
                     <h2 className="font-display text-xl tracking-[0.06em] text-white uppercase transition-colors group-hover:text-brand-yellow">
-                      {albumCopy.title}
+                      {album.title}
                     </h2>
                     <p className="mt-1.5 text-xs text-white/50">
                       {dateLabel}
                       <span className="mx-1.5 text-white/25">·</span>
-                      {programsCopy.venues[album.venueKey]}
+                      {album.venue}
                     </p>
                     <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/60">
-                      {albumCopy.summary}
+                      {album.summary}
                     </p>
                     <p className="mt-4 text-[0.65rem] tracking-[0.16em] text-brand-yellow uppercase">
                       {copy.viewAlbum}

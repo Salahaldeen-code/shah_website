@@ -10,6 +10,8 @@ export type SocialCircleItem = {
   name: string;
   /** Destination URL — leave empty for placeholder `#` */
   href: string;
+  /** Brand icon key for the footer icon row + circle badge */
+  icon: "instagram" | "facebook" | "youtube" | "tiktok";
   /** Images cycled while the circle is active */
   images: readonly string[];
   /** Unique id for interaction state */
@@ -31,7 +33,7 @@ export type SocialCircleItem = {
 
 export const socialFooterConfig = {
   colors: {
-    background: "#f5c518",
+    background: "#fac814",
     text: "#0a0a0a",
     divider: "#0a0a0a",
     circleLabel: "#ffffff",
@@ -89,7 +91,8 @@ export const socialFooterConfig = {
       id: "ig",
       label: "IG",
       name: "Instagram",
-      href: "",
+      icon: "instagram",
+      href: "https://www.instagram.com/",
       images: [
         "/images/hero/image1.jpg",
         "/images/hero/image5.jpg",
@@ -104,7 +107,8 @@ export const socialFooterConfig = {
       id: "fb",
       label: "FB",
       name: "Facebook",
-      href: "",
+      icon: "facebook",
+      href: "https://www.facebook.com/",
       images: [
         "/images/hero/image3.jpg",
         "/images/hero/image4.jpg",
@@ -119,7 +123,8 @@ export const socialFooterConfig = {
       id: "yt",
       label: "YT",
       name: "YouTube",
-      href: "",
+      icon: "youtube",
+      href: "https://www.youtube.com/",
       images: [
         "/images/hero/image6.jpg",
         "/images/hero/image2.jpg",
@@ -134,7 +139,8 @@ export const socialFooterConfig = {
       id: "tk",
       label: "TK",
       name: "TikTok",
-      href: "",
+      icon: "tiktok",
+      href: "https://www.tiktok.com/",
       images: [
         "/images/hero/image2.jpg",
         "/images/app/impact-triathlon.png",

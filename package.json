@@ -4,22 +4,37 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "payload migrate && next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "payload": "payload",
+    "payload:types": "payload generate:types",
+    "payload:importmap": "payload generate:importmap",
+    "cms:seed": "payload seed",
+    "media:cloudinary": "tsx --env-file=.env.local ./scripts/media-to-cloudinary.ts"
   },
   "dependencies": {
+    "@payloadcms/db-sqlite": "^3.86.0",
+    "@payloadcms/db-vercel-postgres": "^3.86.0",
+    "@payloadcms/next": "^3.86.0",
+    "@payloadcms/plugin-cloud-storage": "^3.86.0",
+    "@payloadcms/richtext-lexical": "^3.86.0",
+    "@payloadcms/storage-vercel-blob": "^3.86.0",
+    "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
+    "graphql": "^17.0.2",
     "gsap": "^3.15.0",
     "next": "16.2.10",
+    "payload": "^3.86.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-icons": "^5.7.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.3",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
@@ -27,11 +42,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }

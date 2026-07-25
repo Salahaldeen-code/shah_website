@@ -26,6 +26,12 @@
     "scriptA": "GO",
     "scriptB": "GET"
   },
+  "editorial": {
+    "topText": "TRAIN",
+    "middleText": "COMPETE",
+    "bottomText": "EVOLVE",
+    "overlayText": "Push forward"
+  },
   "programs": {
     "title": "Upcoming programs",
     "subtitle": "Discover your next session across our hubs.",
@@ -116,6 +122,12 @@
     "backToGallery": "Back to gallery",
     "photosHeading": "All photos",
     "photoCount": "photos",
+    "reel": {
+      "eyebrow": "PSR",
+      "title": "Moments in motion",
+      "subtitle": "Scroll through highlights from the field, court, and community.",
+      "cta": "Explore the gallery"
+    },
     "labels": {
       "date": "Date",
       "venue": "Venue",

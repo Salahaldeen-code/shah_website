@@ -8,10 +8,11 @@ import { createPortal } from "react-dom";
 import type { ProgramRecord } from "@/config/programs";
 import type { Locale } from "@/config/i18n";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { CmsProgram } from "@/lib/cms/programs";
 import { formatScheduleLabel } from "@/lib/programs";
 
 type ProgramDetailModalProps = {
-  program: ProgramRecord;
+  program: ProgramRecord | CmsProgram;
   locale: Locale;
   copy: Dictionary["programs"];
   onClose: () => void;
@@ -63,7 +64,18 @@ export function ProgramDetailModal({
   const [mounted, setMounted] = useState(false);
   const intlLocale = locale === "ms" ? "ms-MY" : "en-MY";
   const schedule = formatScheduleLabel(program.start, program.end, intlLocale);
-  const description = copy.details?.[program.titleKey] ?? copy.subtitle;
+  const title =
+    "title" in program && program.title
+      ? program.title
+      : copy.items[(program as ProgramRecord).titleKey];
+  const venue =
+    "venue" in program && program.venue
+      ? program.venue
+      : copy.venues[(program as ProgramRecord).venueKey];
+  const description =
+    "details" in program && program.details
+      ? program.details
+      : (copy.details?.[(program as ProgramRecord).titleKey] ?? copy.subtitle);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
@@ -110,7 +122,7 @@ export function ProgramDetailModal({
         <div className="relative aspect-video w-full bg-brand-surface">
           <Image
             src={program.image}
-            alt={copy.items[program.titleKey]}
+            alt={title}
             fill
             sizes="512px"
             className="object-cover"
@@ -141,7 +153,7 @@ export function ProgramDetailModal({
             id={titleId}
             className="mt-1 font-display text-2xl tracking-[0.06em] text-brand-yellow uppercase sm:text-3xl"
           >
-            {copy.items[program.titleKey]}
+            {title}
           </h3>
 
           <div className="mt-4 space-y-2.5 text-sm">
@@ -151,7 +163,7 @@ export function ProgramDetailModal({
             </p>
             <p className="inline-flex items-start gap-2.5 text-white/65">
               <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-yellow" />
-              <span>{copy.venues[program.venueKey]}</span>
+              <span>{venue}</span>
             </p>
           </div>
 

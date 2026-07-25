@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ContactPageContent } from "@/components/contact/ContactPageContent";
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getCmsContactPage } from "@/lib/cms";
 import { getLocale } from "@/lib/i18n/locale";
 
 export const metadata: Metadata = {
@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
   const locale = await getLocale();
-  const dictionary = await getDictionary(locale);
+  const contact = await getCmsContactPage(locale);
 
   return (
     <main className="min-h-svh bg-brand-dark pb-[var(--content-bottom-pad)] text-white">
-      <ContactPageContent copy={dictionary.contactPage} />
+      <ContactPageContent copy={contact.copy} image={contact.image} />
     </main>
   );
 }

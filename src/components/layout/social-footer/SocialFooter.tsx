@@ -12,6 +12,7 @@ import { socialFooterConfig, type SocialCircleItem } from "@/config/socialFooter
 import { cn } from "@/lib/utils";
 
 import { FooterBottom } from "./FooterBottom";
+import { SocialBrandIcon } from "./SocialBrandIcon";
 import { SocialCircle } from "./SocialCircle";
 
 type Breakpoint = "mobile" | "tablet" | "desktop";
@@ -254,6 +255,22 @@ export function SocialFooter() {
         <h2 className="relative z-10 mx-auto mt-4 max-w-[52rem] px-2 text-center font-display text-[clamp(1.35rem,4.8vw,3.75rem)] leading-[1.05] tracking-[0.04em] uppercase sm:mt-6 md:mt-8">
           {heading}
         </h2>
+
+        <ul className="relative z-10 mx-auto mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-8 sm:gap-4">
+          {socialItems.map((item) => (
+            <li key={`icon-${item.id}`}>
+              <a
+                href={item.href || "#"}
+                target={item.href ? "_blank" : undefined}
+                rel={item.href ? "noopener noreferrer" : undefined}
+                aria-label={`Visit our ${item.name}`}
+                className="flex size-12 items-center justify-center rounded-full border-2 border-brand-dark bg-brand-dark text-brand-yellow transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-transparent hover:text-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-brand-dark sm:size-14"
+              >
+                <SocialBrandIcon icon={item.icon} size={22} />
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="mt-8 sm:mt-10">

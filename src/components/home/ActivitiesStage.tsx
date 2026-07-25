@@ -10,6 +10,7 @@ import {
   activityItems,
   activityPairs,
   type ActivityItem,
+  type ActivityPair,
   type ActivityTagKey,
   type ActivityTitleKey,
 } from "@/config/activities";
@@ -28,9 +29,22 @@ export type ActivitiesCopy = {
   };
 };
 
+type StageActivity = ActivityItem & { title?: string; tag?: string };
+
 type ActivitiesStageProps = {
   copy: ActivitiesCopy;
+  items?: readonly StageActivity[];
+  pairs?: readonly ActivityPair[];
+  membershipImage?: string;
 };
+
+function resolveTitle(item: StageActivity, copy: ActivitiesCopy) {
+  return item.title ?? copy.items[item.titleKey];
+}
+
+function resolveTag(item: StageActivity, copy: ActivitiesCopy) {
+  return copy.tags[item.tagKey] ?? item.tag ?? "";
+}
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -100,9 +114,7 @@ function ActivityPanel({
     if (!video) return;
     const play = video.play();
     if (play) {
-      play
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
+      play.then(() => setPlaying(true)).catch(() => setPlaying(false));
     }
   };
 
@@ -185,7 +197,13 @@ function ActivityPanel({
   );
 }
 
-function MobileActivitiesLayout({ copy }: { copy: ActivitiesCopy }) {
+function MobileActivitiesLayout({
+  copy,
+  items,
+}: {
+  copy: ActivitiesCopy;
+  items: readonly StageActivity[];
+}) {
   return (
     <div className="relative bg-black px-[var(--container-padding)] pt-12 pb-6">
       <header className="mx-auto max-w-lg text-center">
@@ -198,12 +216,12 @@ function MobileActivitiesLayout({ copy }: { copy: ActivitiesCopy }) {
       </header>
 
       <ul className="mx-auto mt-8 grid max-w-lg grid-cols-2 gap-3">
-        {activityItems.map((item) => (
+        {items.map((item) => (
           <li key={item.id}>
             <ActivityPanel
               item={item}
-              title={copy.items[item.titleKey]}
-              tag={copy.tags[item.tagKey]}
+              title={resolveTitle(item, copy)}
+              tag={resolveTag(item, copy)}
               className="w-full"
               compact
               style={{ animation: "none" }}
@@ -224,7 +242,7 @@ function ActivityPairLayer({
   showTopLeft = true,
   showBottomRight = true,
 }: {
-  pair: (typeof activityPairs)[number];
+  pair: ActivityPair;
   copy: ActivitiesCopy;
   shiftY: string;
   opacity: number;
@@ -249,8 +267,8 @@ function ActivityPairLayer({
       {showTopLeft ? (
         <ActivityPanel
           item={topLeft}
-          title={copy.items[topLeft.titleKey]}
-          tag={copy.tags[topLeft.tagKey]}
+          title={resolveTitle(topLeft, copy)}
+          tag={resolveTag(topLeft, copy)}
           className={`absolute top-0 left-0 z-20 ${activityCardWidthClass}`}
           style={{ animation: "none" }}
         />
@@ -258,8 +276,8 @@ function ActivityPairLayer({
       {showBottomRight ? (
         <ActivityPanel
           item={bottomRight}
-          title={copy.items[bottomRight.titleKey]}
-          tag={copy.tags[bottomRight.tagKey]}
+          title={resolveTitle(bottomRight, copy)}
+          tag={resolveTag(bottomRight, copy)}
           className={`absolute right-0 bottom-0 z-20 ${activityCardWidthClass}`}
           style={{ animation: "none" }}
         />
@@ -271,8 +289,10 @@ function ActivityPairLayer({
 /** Normal document-flow Join the Movement block (not sticky). */
 function MembershipAct({
   membership,
+  membershipImage = activitiesMembershipImage,
 }: {
   membership: ActivitiesCopy["membership"];
+  membershipImage?: string;
 }) {
   return (
     <div
@@ -314,7 +334,7 @@ function MembershipAct({
         <div className="relative z-20 mx-auto flex h-[min(64svh,32rem)] w-full max-w-[28rem] items-end justify-center sm:h-[min(70svh,38rem)] lg:mx-0 lg:h-[min(78svh,44rem)] lg:max-w-none lg:justify-end">
           <div className="relative h-full w-full max-w-[22rem] sm:max-w-[26rem] lg:max-w-[30rem]">
             <Image
-              src={activitiesMembershipImage}
+              src={membershipImage}
               alt={membership.imageAlt}
               fill
               sizes="(max-width: 1024px) 80vw, 42vw"
@@ -332,11 +352,18 @@ function MembershipAct({
  * Sticky Activities stage (cards + Aerial Yoga), then normal Join the Movement below.
  * Phone (<640px): simple title + 2×2 grid — no overlapping absolute cards.
  */
-export function ActivitiesStage({ copy }: ActivitiesStageProps) {
+export function ActivitiesStage({
+  copy,
+  items: itemsProp,
+  pairs: pairsProp,
+  membershipImage,
+}: ActivitiesStageProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const [progress, setProgress] = useState(0);
   const { membership } = copy;
+  const stageItems = itemsProp ?? activityItems;
+  const stagePairs = pairsProp ?? activityPairs;
 
   useEffect(() => {
     if (reducedMotion) return;
@@ -373,8 +400,8 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
   const stageLift = reducedMotion ? 0 : smooth(range(progress, 0.28, 0.94));
   const rise = reducedMotion ? 1 : smooth(range(progress, 0.3, 0.78));
 
-  const pairA = activityPairs[0];
-  const pairB = activityPairs[1];
+  const pairA = stagePairs[0]!;
+  const pairB = stagePairs[1] ?? stagePairs[0]!;
   const featured = pairB.items.find((item) => item.slot === "bottomRight")!;
 
   const pairAOpacity = Math.max(0, 1 - pairShift * 1.2);
@@ -422,7 +449,7 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
     <div className="relative bg-black">
       {/* Phone: readable 2×2 grid (no overlapping absolute cards) */}
       <div className="sm:hidden">
-        <MobileActivitiesLayout copy={copy} />
+        <MobileActivitiesLayout copy={copy} items={stageItems} />
       </div>
 
       {/* Tablet / desktop: sticky scroll stage */}
@@ -438,8 +465,8 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
               />
               <ActivityPanel
                 item={featured}
-                title={copy.items[featured.titleKey]}
-                tag={copy.tags[featured.tagKey]}
+                title={resolveTitle(featured, copy)}
+                tag={resolveTag(featured, copy)}
                 className={featuredCardClass}
                 style={{
                   animation: "none",
@@ -522,8 +549,8 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
 
                     <ActivityPanel
                       item={featured}
-                      title={copy.items[featured.titleKey]}
-                      tag={copy.tags[featured.tagKey]}
+                      title={resolveTitle(featured, copy)}
+                      tag={resolveTag(featured, copy)}
                       className={featuredCardClass}
                       style={featuredStyle}
                     />
@@ -536,7 +563,10 @@ export function ActivitiesStage({ copy }: ActivitiesStageProps) {
       </div>
 
       <div className="relative z-10 sm:-mt-[90vh]">
-        <MembershipAct membership={membership} />
+        <MembershipAct
+          membership={membership}
+          membershipImage={membershipImage}
+        />
       </div>
     </div>
   );

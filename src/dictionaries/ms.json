@@ -26,6 +26,12 @@
     "scriptA": "JADI",
     "scriptB": "GET"
   },
+  "editorial": {
+    "topText": "LATIH",
+    "middleText": "BERSAING",
+    "bottomText": "BEREVOLUSI",
+    "overlayText": "Maju ke hadapan"
+  },
   "programs": {
     "title": "Program akan datang",
     "subtitle": "Temui sesi seterusnya di hab kami.",
@@ -116,6 +122,12 @@
     "backToGallery": "Kembali ke galeri",
     "photosHeading": "Semua foto",
     "photoCount": "foto",
+    "reel": {
+      "eyebrow": "PSR",
+      "title": "Detik dalam gerakan",
+      "subtitle": "Tatal untuk melihat sorotan dari padang, gelanggang, dan komuniti.",
+      "cta": "Terokai galeri"
+    },
     "labels": {
       "date": "Tarikh",
       "venue": "Tempat",

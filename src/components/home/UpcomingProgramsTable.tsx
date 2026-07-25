@@ -5,17 +5,19 @@ import { useState, type CSSProperties } from "react";
 
 import { ProgramDetailModal } from "@/components/home/ProgramDetailModal";
 import {
-  programs,
+  programs as staticPrograms,
   type ProgramCategoryKey,
   type ProgramRecord,
 } from "@/config/programs";
 import type { Locale } from "@/config/i18n";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { formatScheduleLabel, getUpcomingPrograms } from "@/lib/programs";
+import type { CmsProgram } from "@/lib/cms/programs";
 
 type UpcomingProgramsTableProps = {
   locale: Locale;
   copy: Dictionary["programs"];
+  programs?: CmsProgram[];
   className?: string;
   style?: CSSProperties;
 };
@@ -80,21 +82,47 @@ function PinIcon({ className }: { className?: string }) {
 export function UpcomingProgramsTable({
   locale,
   copy,
+  programs: programsProp,
   className = "",
   style,
 }: UpcomingProgramsTableProps) {
   const intlLocale = locale === "ms" ? "ms-MY" : "en-MY";
   const [filter, setFilter] = useState<FilterKey>("all");
   const [showAll, setShowAll] = useState(false);
-  const [selected, setSelected] = useState<ProgramRecord | null>(null);
+  const [selected, setSelected] = useState<CmsProgram | ProgramRecord | null>(
+    null,
+  );
 
-  const allUpcoming = getUpcomingPrograms(programs);
+  const allUpcoming = programsProp
+    ? [...programsProp].sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+      )
+    : getUpcomingPrograms(staticPrograms);
   const upcoming = allUpcoming.filter((program) => {
     if (filter === "all") return true;
     return program.categoryKey === (filter as ProgramCategoryKey);
   });
   const visiblePrograms = showAll ? upcoming : upcoming.slice(0, LIST_SLOTS);
   const canExpand = allUpcoming.length > LIST_SLOTS;
+
+  function programTitle(program: CmsProgram | ProgramRecord) {
+    if ("title" in program && program.title) return program.title;
+    return copy.items[(program as ProgramRecord).titleKey];
+  }
+
+  function programVenue(program: CmsProgram | ProgramRecord) {
+    if ("venue" in program && program.venue) return program.venue;
+    return copy.venues[(program as ProgramRecord).venueKey];
+  }
+
+  function programCategory(program: CmsProgram | ProgramRecord) {
+    if ("categoryLabel" in program && program.categoryLabel) {
+      return (
+        copy.categories[program.categoryKey] ?? program.categoryLabel
+      );
+    }
+    return copy.categories[program.categoryKey];
+  }
 
   return (
     <div
@@ -170,7 +198,7 @@ export function UpcomingProgramsTable({
                       <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-surface sm:aspect-4/3">
                         <Image
                           src={program.image}
-                          alt={copy.items[program.titleKey]}
+                          alt={programTitle(program)}
                           fill
                           sizes="76px"
                           className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
@@ -179,10 +207,10 @@ export function UpcomingProgramsTable({
 
                       <div className="min-w-0 self-center">
                         <p className="text-[0.55rem] tracking-[0.18em] text-white/55 uppercase">
-                          {copy.categories[program.categoryKey]}
+                          {programCategory(program)}
                         </p>
                         <p className="mt-0.5 truncate font-display text-[0.95rem] tracking-[0.05em] text-brand-yellow uppercase sm:text-lg">
-                          {copy.items[program.titleKey]}
+                          {programTitle(program)}
                         </p>
                         <div className="mt-1.5 flex flex-col gap-1 text-[0.68rem] text-white/60 sm:hidden">
                           <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -192,7 +220,7 @@ export function UpcomingProgramsTable({
                           <span className="inline-flex min-w-0 items-center gap-1.5">
                             <PinIcon className="h-3 w-3 shrink-0 text-brand-yellow/80" />
                             <span className="truncate">
-                              {copy.venues[program.venueKey]}
+                              {programVenue(program)}
                             </span>
                           </span>
                         </div>
@@ -208,7 +236,7 @@ export function UpcomingProgramsTable({
                         <p className="inline-flex items-center gap-2 text-xs text-white/55">
                           <PinIcon className="h-3.5 w-3.5 shrink-0 text-brand-yellow/70" />
                           <span className="truncate">
-                            {copy.venues[program.venueKey]}
+                            {programVenue(program)}
                           </span>
                         </p>
                       </div>

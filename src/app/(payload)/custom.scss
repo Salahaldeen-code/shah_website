@@ -1,0 +1,298 @@
+/* Payload admin — PSR brand polish */
+
+:root {
+  --psr-admin-yellow: #fac814;
+  --psr-admin-red: #dc0a00;
+  --psr-admin-blue: #004baa;
+}
+
+/* Section headers — clear labeled boxes */
+.nav-group {
+  margin-bottom: 0.75rem !important;
+}
+
+.nav-group__toggle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  margin-bottom: 0.4rem !important;
+  padding: 0.55rem 0.7rem !important;
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-radius: 8px !important;
+  background: var(--theme-elevation-50) !important;
+  color: var(--theme-elevation-800) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.nav-group__toggle:hover,
+.nav-group__toggle:focus-visible {
+  background: color-mix(in srgb, var(--psr-admin-yellow) 14%, var(--theme-elevation-50)) !important;
+  border-color: color-mix(in srgb, var(--psr-admin-yellow) 45%, var(--theme-elevation-150)) !important;
+  color: var(--theme-elevation-1000) !important;
+}
+
+.nav-group__toggle .nav-group__indicator svg {
+  margin-top: 0 !important;
+}
+
+.nav-group__toggle .nav-group__indicator svg .stroke {
+  stroke: var(--theme-elevation-500) !important;
+}
+
+.nav-group__toggle:hover .nav-group__indicator svg .stroke,
+.nav-group__toggle:focus-visible .nav-group__indicator svg .stroke {
+  stroke: var(--psr-admin-yellow) !important;
+}
+
+/* Nested links under each section */
+.nav-group .nav__link,
+.nav .nav__link {
+  border-radius: 6px;
+  margin: 1px 0 1px 0.15rem;
+  padding-block: 0.35rem !important;
+  padding-inline: 0.7rem !important;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.nav__link:hover {
+  background: var(--theme-elevation-100) !important;
+}
+
+.nav__link.active,
+.nav__link[aria-current="page"] {
+  background: color-mix(in srgb, var(--psr-admin-yellow) 16%, transparent) !important;
+  color: var(--psr-admin-yellow) !important;
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--psr-admin-yellow);
+}
+
+/* Soft brand accent on primary buttons */
+.btn.btn--style-primary {
+  background: var(--psr-admin-yellow) !important;
+  border-color: var(--psr-admin-yellow) !important;
+  color: #0a0a0a !important;
+}
+
+.btn.btn--style-primary:hover {
+  background: #ffd84a !important;
+  border-color: #ffd84a !important;
+}
+
+.doc-header__title {
+  letter-spacing: -0.01em;
+}
+
+/* Hide leftover header Edit/API tabs — Edit lives beside Save instead */
+.doc-tabs {
+  display: none !important;
+}
+
+.doc-header {
+  padding-bottom: 0.5rem !important;
+}
+
+.doc-header:after {
+  display: none !important;
+}
+
+/* Edit control sits with Save */
+.psr-edit-beside-save {
+  margin-right: 0.15rem !important;
+}
+
+.doc-controls__controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+
+/* ⋮ menu: keep Delete only */
+.doc-controls__popup .popup-button-list__button:not(#action-delete) {
+  display: none !important;
+}
+
+/* Globals have no Delete — hide empty ⋮ menu */
+.global-edit .doc-controls__popup {
+  display: none !important;
+}
+
+/* Edit / Delete on collection list rows */
+.psr-list-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.psr-list-row-actions .btn {
+  min-width: auto !important;
+}
+
+/* Program image thumbnails in list view */
+.psr-list-image {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 2.25rem;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  background: var(--theme-elevation-100);
+}
+
+.psr-list-image img,
+.psr-list-image__thumb,
+.psr-list-image .thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.psr-list-image .thumbnail {
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.psr-list-image--empty {
+  color: var(--theme-elevation-400);
+  font-size: 0.85rem;
+}
+
+/* Dashboard collection cards — brand color accents */
+.collections__label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  letter-spacing: -0.02em;
+}
+
+.collections__group:nth-child(1) .collections__label {
+  color: var(--psr-admin-yellow);
+}
+
+.collections__group:nth-child(2) .collections__label {
+  color: #7eb6ff;
+}
+
+.collections__group:nth-child(3) .collections__label {
+  color: #ff6b63;
+}
+
+.collections__group:nth-child(4) .collections__label {
+  color: var(--psr-admin-yellow);
+}
+
+.collections__group:nth-child(5) .collections__label {
+  color: #9aa4b2;
+}
+
+.collections .card {
+  --psr-card-accent: var(--psr-admin-yellow);
+  background: color-mix(
+    in srgb,
+    var(--psr-card-accent) 16%,
+    var(--theme-elevation-50)
+  ) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--psr-card-accent) 42%,
+    var(--theme-border-color)
+  ) !important;
+  box-shadow: inset 3px 0 0 var(--psr-card-accent);
+}
+
+.collections .card:hover,
+.collections .card--has-onclick:hover {
+  background: color-mix(
+    in srgb,
+    var(--psr-card-accent) 26%,
+    var(--theme-elevation-50)
+  ) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--psr-card-accent) 70%,
+    var(--theme-border-color)
+  ) !important;
+  box-shadow:
+    inset 3px 0 0 var(--psr-card-accent),
+    0 6px 16px -6px color-mix(in srgb, var(--psr-card-accent) 45%, transparent);
+}
+
+.collections .card .card__title {
+  color: var(--theme-elevation-1000);
+}
+
+.collections .card .btn__icon {
+  border-color: color-mix(
+    in srgb,
+    var(--psr-card-accent) 55%,
+    var(--theme-border-color)
+  ) !important;
+  color: var(--psr-card-accent) !important;
+}
+
+.collections .card .btn__icon:hover {
+  background: color-mix(in srgb, var(--psr-card-accent) 18%, transparent) !important;
+  border-color: var(--psr-card-accent) !important;
+}
+
+/* Home — cycle brand yellow / red / blue */
+#card-home-hero,
+#card-programs-ui,
+#card-home-footer {
+  --psr-card-accent: var(--psr-admin-yellow);
+}
+
+#card-home-editorial,
+#card-programs,
+#card-activities {
+  --psr-card-accent: var(--psr-admin-red);
+}
+
+#card-home-showcase,
+#card-home-impact,
+#card-home-activities {
+  --psr-card-accent: var(--psr-admin-blue);
+}
+
+/* About Us */
+#card-committee-members,
+#card-about-page {
+  --psr-card-accent: #3d8bfd;
+}
+
+/* Gallery */
+#card-gallery-albums,
+#card-gallery-ui {
+  --psr-card-accent: #ff5a52;
+}
+
+/* Contact */
+#card-contact-page {
+  --psr-card-accent: var(--psr-admin-yellow);
+}
+
+/* Site */
+#card-media {
+  --psr-card-accent: #5cc8ff;
+}
+
+#card-users {
+  --psr-card-accent: #a78bfa;
+}
+
+#card-site-settings {
+  --psr-card-accent: #94a3b8;
+}

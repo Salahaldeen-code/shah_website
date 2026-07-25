@@ -7,8 +7,12 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { showcaseGridImages, showcaseSideImages } from "@/config/showcase";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
+type ShowcaseImage = { id: string; src: string; alt: string };
+
 type ActiveLifeCollageProps = {
   copy: Dictionary["showcase"];
+  sideImages?: ShowcaseImage[] | null;
+  gridImages?: ShowcaseImage[] | null;
 };
 
 /** Small portrait frames — start fully on-screen, then drift under the title.
@@ -97,12 +101,23 @@ function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
+export function ActiveLifeCollage({
+  copy,
+  sideImages,
+  gridImages,
+}: ActiveLifeCollageProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const isPhone = useIsPhone();
   const [scrollProgress, setScrollProgress] = useState(0);
   const progress = reducedMotion ? 0.5 : scrollProgress;
+
+  const frames = brandFrames.map((frame, index) => {
+    const override = sideImages?.[index];
+    if (!override) return frame;
+    return { ...frame, src: override.src, alt: override.alt || frame.alt };
+  });
+  const grid = gridImages?.length ? gridImages : showcaseGridImages;
 
   useEffect(() => {
     if (reducedMotion) return;
@@ -176,7 +191,7 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
               isPhone ? "z-[8]" : "z-0"
             }`}
           >
-            {brandFrames.map((frame, index) => {
+            {frames.map((frame, index) => {
               const scale = 1 + underEase * frame.depth * 0.1;
               const driftX = isPhone ? frame.phoneDriftX : frame.driftX;
               const driftY = isPhone ? frame.phoneDriftY : frame.driftY;
@@ -218,7 +233,7 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
               }}
             >
               <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:grid-cols-3 md:gap-2.5">
-                {showcaseGridImages.map((image, index) => {
+                {grid.map((image, index) => {
                   const lag = ((index % 3) - 1) * 12 * progress;
                   return (
                     <div
@@ -316,7 +331,7 @@ export function ActiveLifeCollage({ copy }: ActiveLifeCollageProps) {
 
                   <span className="flex items-center justify-center gap-[0.08em]">
                     <span>{copy.brandLine2}</span>
-                    <span className="inline-block translate-y-[0.02em] text-[1.22em] leading-none text-showcase-orange">
+                    <span className="inline-block translate-y-[0.02em] text-[1.22em] leading-none text-brand-red">
                       {copy.brandAmp}
                     </span>
                     <span>{copy.brandLine3}</span>

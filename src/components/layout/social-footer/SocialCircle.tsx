@@ -17,6 +17,8 @@ import {
 } from "@/config/socialFooter";
 import { cn } from "@/lib/utils";
 
+import { SocialBrandIcon } from "./SocialBrandIcon";
+
 type SocialCircleProps = {
   item: SocialCircleItem;
   isActive: boolean;
@@ -137,6 +139,8 @@ export function SocialCircle({
       href={href}
       aria-label={`Visit our ${item.name}`}
       data-social-circle={item.id}
+      target={item.href ? "_blank" : undefined}
+      rel={item.href ? "noopener noreferrer" : undefined}
       onMouseEnter={layout === "stage" ? handleEnter : undefined}
       onMouseLeave={layout === "stage" ? handleLeave : undefined}
       onFocus={handleFocus}
@@ -192,10 +196,14 @@ export function SocialCircle({
 
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-black/15 font-display text-[clamp(2rem,8vw,5.5rem)] leading-none tracking-[0.06em] text-white uppercase"
-        style={{ color: colors.circleLabel }}
+        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-black/25"
       >
-        {item.label}
+        <span
+          className="flex size-[28%] min-h-12 min-w-12 max-h-24 max-w-24 items-center justify-center rounded-full bg-black/45 text-white shadow-[0_4px_16px_rgb(0_0_0_/0.35)] backdrop-blur-[2px]"
+          style={{ color: colors.circleLabel }}
+        >
+          <SocialBrandIcon icon={item.icon} size={Math.max(18, Math.round(size * 0.14))} />
+        </span>
       </span>
     </Link>
   );

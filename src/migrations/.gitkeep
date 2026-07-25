@@ -1,0 +1,2 @@
+# Placeholder so Payload migrate has a directory in repo.
+# Production schema is managed by `payload migrate` / adapter push against Postgres.

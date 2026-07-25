@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Persatuan Sukan & Rekreasi (PSR) website
 
-## Getting Started
+Next.js App Router site with an embedded [Payload CMS 3](https://payloadcms.com/) admin at `/admin`.
 
-First, run the development server:
+## Getting started
 
 ```bash
+cp .env.example .env.local
+# set PAYLOAD_SECRET to a long random string
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Site: [http://localhost:3000](http://localhost:3000)
+- CMS: [http://localhost:3000/admin](http://localhost:3000/admin) — create the first admin user on first visit
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Without `POSTGRES_URL`, Payload uses local SQLite (`./payload.db`). Without `BLOB_READ_WRITE_TOKEN`, media uploads are stored under `./media`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Seed CMS from existing content
 
-## Learn More
+```bash
+npm run cms:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+Imports programs, gallery albums, activities, committee, and homepage/about/contact globals (EN + MS) from the current config/dictionary files. Local media is uploaded into Payload Media (disk `./media`, or Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Useful scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Next.js + Payload |
+| `npm run build` | `payload migrate` then `next build` |
+| `npm run payload` | Payload CLI |
+| `npm run payload:types` | Generate `src/payload-types.ts` |
+| `npm run payload:importmap` | Regenerate admin import map |
+| `npm run cms:seed` | Seed collections/globals |
+
+## Content model (v1)
+
+Admin sidebar is grouped by page. Each entry is a section of that page:
+
+| Page group | Sections |
+| --- | --- |
+| **01 — Home** | Active Life Showcase · Impact Section · Programs Labels · Upcoming Programs · Activities Section · Activity Cards |
+| **02 — About Us** | About Page Copy · Committee Members |
+| **03 — Gallery** | Gallery Labels · Photo Albums |
+| **04 — Contact** | Contact Page Copy |
+| **05 — Site** | Site Settings · Media Library · Admin Users |
+
+Localized fields use Payload locales `en` and `ms`. Navigation structure and form submission APIs stay in code for a later phase.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Create stores**
+   - Vercel Postgres (or Neon) → copy connection string to `POSTGRES_URL`
+   - Vercel Blob → copy `BLOB_READ_WRITE_TOKEN`
+2. **Environment variables** (Project → Settings → Environment Variables)
+   - `PAYLOAD_SECRET` — long random string (required)
+   - `POSTGRES_URL` — Postgres connection string (required in production)
+   - `BLOB_READ_WRITE_TOKEN` — Blob read/write token (required for production media)
+   - `NEXT_PUBLIC_SITE_URL` — production URL
+3. **Build** — `npm run build` already runs `payload migrate` before `next build`
+4. **Smoke test**
+   - Open `/admin`, create/login as admin
+   - Edit a program title → confirm the homepage programs table updates (cache revalidates via Payload hooks)
+5. **Optional:** run `npm run cms:seed` once against production (with env vars set locally pointing at prod DB/Blob) to import starter content
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Do not commit `.env.local`, `payload.db`, or `/media`.
