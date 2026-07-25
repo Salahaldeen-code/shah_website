@@ -1,6 +1,6 @@
 export type HeroSlide = {
   id: string;
-  /** Still image, or poster shown before / without video. */
+  /** Still image, or poster/fallback when a video is set. */
   src: string;
   alt: string;
   /**
@@ -8,11 +8,18 @@ export type HeroSlide = {
    * When set, the active slide plays this muted looping video.
    */
   video?: string;
+  /**
+   * YouTube video id (e.g. from youtu.be/VIDEO_ID).
+   * Temporary: used when we want the same hosted clip on every video slide.
+   */
+  youtubeId?: string;
 };
 
+/** Temporary: same YouTube clip on all three hero video slides. */
+export const heroYoutubeVideoId = "L3374C3OyrY";
+
 /**
- * Hero carousel — all media is local for fast first paint.
- * Odd slides: photos. Even slides: local video + photo poster.
+ * Hero carousel — photos are local; video slides temporarily share one YouTube clip.
  */
 export const heroSlides: HeroSlide[] = [
   {
@@ -22,9 +29,9 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     id: "slide-2",
-    src: "/images/hero/image2.jpg",
+    src: `https://img.youtube.com/vi/${heroYoutubeVideoId}/hqdefault.jpg`,
     alt: "Hero video slide 2",
-    video: "/videos/activities/outdoor.mp4",
+    youtubeId: heroYoutubeVideoId,
   },
   {
     id: "slide-3",
@@ -33,9 +40,9 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     id: "slide-4",
-    src: "/images/hero/image4.jpg",
+    src: `https://img.youtube.com/vi/${heroYoutubeVideoId}/hqdefault.jpg`,
     alt: "Hero video slide 4",
-    video: "/videos/activities/kids.mp4",
+    youtubeId: heroYoutubeVideoId,
   },
   {
     id: "slide-5",
@@ -44,9 +51,9 @@ export const heroSlides: HeroSlide[] = [
   },
   {
     id: "slide-6",
-    src: "/images/hero/image6.jpg",
+    src: `https://img.youtube.com/vi/${heroYoutubeVideoId}/hqdefault.jpg`,
     alt: "Hero video slide 6",
-    video: "/videos/activities/community.mp4",
+    youtubeId: heroYoutubeVideoId,
   },
 ];
 
