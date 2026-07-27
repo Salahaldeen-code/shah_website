@@ -123,6 +123,33 @@ export const Programs: CollectionConfig = {
                 },
               },
             },
+            {
+              name: "video",
+              type: "upload",
+              relationTo: "media",
+              label: "Hover / preview video",
+              admin: {
+                description:
+                  "Optional muted loop for richer program cards/previews (not required for the Upcoming Programs table).",
+              },
+            },
+            {
+              name: "photos",
+              type: "array",
+              labels: { singular: "Photo", plural: "Gallery photos" },
+              admin: {
+                description:
+                  "Attached images for this program (works like the Activities album photos field).",
+              },
+              fields: [
+                {
+                  name: "image",
+                  type: "upload",
+                  relationTo: "media",
+                  required: true,
+                },
+              ],
+            },
           ],
         },
       ],

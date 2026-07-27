@@ -8,8 +8,8 @@ export async function script() {
   const payload = await getPayload({ config });
   const cols = [
     "programs",
+    "categories",
     "activities",
-    "gallery-albums",
     "committee-members",
     "media",
     "users",

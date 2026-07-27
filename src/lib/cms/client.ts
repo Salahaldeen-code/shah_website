@@ -29,3 +29,31 @@ export function mediaUrl(
   if (media.filename) return `/api/media/file/${media.filename}`;
   return fallback;
 }
+
+/** Resolve upload fields even when Payload returns a bare media ID. */
+export async function resolveMediaUrl(
+  payload: Payload,
+  media:
+    | number
+    | string
+    | { url?: string | null; filename?: string | null }
+    | null
+    | undefined,
+  fallback = "",
+): Promise<string> {
+  if (!media) return fallback;
+  if (typeof media === "object") return mediaUrl(media, fallback);
+  if (typeof media === "string" && media.startsWith("/")) return media;
+  if (typeof media === "string" && media.startsWith("http")) return media;
+
+  try {
+    const doc = await payload.findByID({
+      collection: "media",
+      id: media,
+      depth: 0,
+    });
+    return mediaUrl(doc, fallback);
+  } catch {
+    return fallback;
+  }
+}

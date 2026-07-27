@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -17,11 +18,12 @@ import {
   type ShutterLayoutMetrics,
 } from "@/components/home/HeroShutterBars";
 import {
+  buildHeroSlideCycles,
   getCombineAmount,
   getPreviousPairIndex,
   getTimelinePhase,
   heroCarouselConfig,
-  heroPairs,
+  heroShutterConfig,
   heroSlides,
   shutterBarHeightRatio,
   type HeroSlide,
@@ -30,6 +32,8 @@ import {
 
 type HeroCarouselProps = {
   slides?: HeroSlide[];
+  /** Word shown in the yellow shutter bars. */
+  title?: string;
   labels: {
     carousel: string;
     slideStatus: string;
@@ -120,8 +124,9 @@ function useShutterLayout(containerRef: RefObject<HTMLElement | null>) {
 }
 
 function preloadImage(src: string) {
-  if (typeof window === "undefined") return Promise.resolve();
+  if (typeof window === "undefined" || !src) return Promise.resolve();
   const image = new window.Image();
+  image.decoding = "async";
   image.src = src;
   if (typeof image.decode === "function") {
     return image.decode().catch(() => undefined);
@@ -130,6 +135,26 @@ function preloadImage(src: string) {
     image.onload = () => resolve();
     image.onerror = () => resolve();
   });
+}
+
+function preloadVideo(src: string) {
+  if (typeof window === "undefined" || !src) return;
+  const video = document.createElement("video");
+  video.preload = "auto";
+  video.muted = true;
+  video.playsInline = true;
+  video.src = src;
+  video.load();
+}
+
+/** Decode every slide poster (and buffer local videos) before transitions need them. */
+function useHeroMediaWarmup(slides: readonly HeroSlide[]) {
+  useEffect(() => {
+    for (const slide of slides) {
+      void preloadImage(slide.src);
+      if (slide.video) preloadVideo(slide.video);
+    }
+  }, [slides]);
 }
 
 function youtubeEmbedSrc(videoId: string) {
@@ -154,66 +179,129 @@ function SlideLayer({
   clipPath,
   className = "",
   playVideo = true,
+  visible = true,
 }: {
   slide: HeroSlide;
   priority?: boolean;
   clipPath?: string;
   className?: string;
-  /** When false, show poster only (reduced motion / inactive). */
+  /** When false, keep media mounted but don't autoplay video/iframe. */
   playVideo?: boolean;
+  /** Soft-hide without unmounting so the next frame is already decoded. */
+  visible?: boolean;
 }) {
-  const showYoutube = Boolean(slide.youtubeId && playVideo);
-  const showLocalVideo = Boolean(slide.video && playVideo && !slide.youtubeId);
+  const hasUploadedVideo = Boolean(slide.video);
+  const hasYoutube = Boolean(slide.youtubeId) && !hasUploadedVideo;
+  const isVideoSlide = hasUploadedVideo || hasYoutube;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [mediaReady, setMediaReady] = useState(false);
+  const wasReadyRef = useRef(false);
+  const activePlayback = playVideo && visible;
+
+  // Only reset when the media source changes — NOT when play/visibility toggles,
+  // so YT can stay alive when this layer moves from "B" → "prev".
+  useEffect(() => {
+    setMediaReady(false);
+    wasReadyRef.current = false;
+  }, [slide.id, slide.video, slide.youtubeId]);
+
+  useEffect(() => {
+    if (mediaReady) wasReadyRef.current = true;
+  }, [mediaReady]);
+
+  // Safety: don't stay on black forever
+  useEffect(() => {
+    if (!activePlayback || !isVideoSlide || mediaReady) return;
+    const timer = window.setTimeout(() => setMediaReady(true), 2800);
+    return () => window.clearTimeout(timer);
+  }, [activePlayback, isVideoSlide, mediaReady, slide.video, slide.youtubeId]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !hasUploadedVideo) return;
+
+    const markReady = () => setMediaReady(true);
+
+    el.addEventListener("canplay", markReady);
+    el.addEventListener("playing", markReady);
+
+    if (activePlayback) {
+      if (el.readyState >= 3) markReady();
+      void el.play().catch(() => undefined);
+    } else {
+      el.pause();
+    }
+
+    return () => {
+      el.removeEventListener("canplay", markReady);
+      el.removeEventListener("playing", markReady);
+    };
+  }, [hasUploadedVideo, activePlayback, slide.video]);
+
+  // Image-only slides use the poster. Video slides never fall back to poster
+  // after they've played — that was flashing image-1 over the outgoing YT.
+  const showPoster = !isVideoSlide;
+  const showBlackHold =
+    isVideoSlide && visible && !mediaReady && !wasReadyRef.current;
+  const showLiveMedia =
+    isVideoSlide && visible && (mediaReady || wasReadyRef.current);
 
   return (
     <div
       className={`absolute inset-0 ${className}`}
-      style={clipPath ? { clipPath } : undefined}
+      style={{
+        ...(clipPath ? { clipPath } : {}),
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? undefined : "none",
+      }}
+      aria-hidden={visible ? undefined : true}
     >
-      {showYoutube && slide.youtubeId ? (
-        <div className="absolute inset-0 overflow-hidden bg-brand-dark">
+      <div className="absolute inset-0 overflow-hidden bg-brand-dark">
+        {showPoster ? (
+          <Image
+            src={slide.src}
+            alt={slide.alt}
+            fill
+            priority={priority}
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : null}
+
+        {showBlackHold ? (
+          <div aria-hidden className="absolute inset-0 bg-brand-dark" />
+        ) : null}
+
+        {/* Keep YT mounted for the life of this slide id so handoffs don't remount */}
+        {hasYoutube && slide.youtubeId ? (
           <iframe
             title={slide.alt}
             src={youtubeEmbedSrc(slide.youtubeId)}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen={false}
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 border-0"
+            onLoad={() => setMediaReady(true)}
+            className={`pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 border-0 transition-opacity duration-500 ease-out ${
+              showLiveMedia ? "opacity-100" : "opacity-0"
+            }`}
           />
-        </div>
-      ) : showLocalVideo && slide.video ? (
-        <div className="absolute inset-0 overflow-hidden bg-brand-dark">
-          <Image
-            src={slide.src}
-            alt=""
-            fill
-            priority={priority}
-            sizes="100vw"
-            aria-hidden
-            className="object-cover"
-          />
+        ) : null}
+
+        {hasUploadedVideo && slide.video ? (
           <video
-            key={slide.video}
-            className="absolute inset-0 h-full w-full object-cover"
+            ref={videoRef}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out ${
+              showLiveMedia ? "opacity-100" : "opacity-0"
+            }`}
             src={slide.video}
-            poster={slide.src}
-            autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
             aria-label={slide.alt}
           />
-        </div>
-      ) : (
-        <Image
-          src={slide.src}
-          alt={slide.alt}
-          fill
-          priority={priority}
-          sizes="100vw"
-          className="object-cover"
-        />
-      )}
+        ) : null}
+      </div>
+
       <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/25 to-brand-red/20" />
     </div>
   );
@@ -234,25 +322,26 @@ function getLayerMode(
   imagePrev: HeroSlide,
 ): LayerMode {
   if (phase === "opening") {
-    // Next (A) between bars, previous outside
     return { kind: "dual", outside: imagePrev, center: imageA };
   }
   if (phase === "openHold") {
     return { kind: "single", slide: imageA };
   }
   if (phase === "closing") {
-    // Previous (A) between, next (B) outside
     return { kind: "dual", outside: imageB, center: imageA };
   }
-  // closedHold
   return { kind: "single", slide: imageB };
 }
 
 export function HeroCarousel({
   slides = heroSlides,
+  title = heroShutterConfig.marqueeText,
   labels,
 }: HeroCarouselProps) {
-  const pairCount = heroPairs.length;
+  const cycle = useMemo(() => buildHeroSlideCycles(slides), [slides]);
+  const displaySlides = cycle.slides;
+  const pairs = cycle.pairs;
+  const pairCount = pairs.length;
   const [pairIndex, setPairIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
@@ -262,22 +351,24 @@ export function HeroCarousel({
   const frameRef = useRef<number | null>(null);
   const startedAtRef = useRef(0);
   const cycleIdRef = useRef(0);
-  const preloadedCloseRef = useRef<number | null>(null);
-  const preloadedOpenRef = useRef<number | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
   const reducedMotion = usePrefersReducedMotion();
   const shutterLayout = useShutterLayout(heroRef);
 
+  useHeroMediaWarmup(displaySlides);
+
   const skipOpening = pairIndex === 0 && !hasLooped;
   const timelineOptions = { skipOpening };
 
-  const pair = heroPairs[pairIndex] ?? [0, 0];
+  const pair = pairs[pairIndex] ?? [0, 0];
   const prevPairIndex = getPreviousPairIndex(pairIndex, pairCount);
-  const prevPair = heroPairs[prevPairIndex] ?? [0, 0];
+  const prevPair = pairs[prevPairIndex] ?? [0, 0];
+  const nextPair = pairs[(pairIndex + 1) % Math.max(pairCount, 1)] ?? [0, 0];
 
-  const imageA = slides[pair[0]];
-  const imageB = slides[pair[1]];
-  const imagePrev = slides[prevPair[1]];
+  const imageA = displaySlides[pair[0]];
+  const imageB = displaySlides[pair[1]];
+  const imagePrev = displaySlides[prevPair[1]];
+  const imageNextA = displaySlides[nextPair[0]];
 
   const combineAmount = reducedMotion
     ? 0
@@ -289,8 +380,7 @@ export function HeroCarousel({
       ? getLayerMode(phase, imageA, imageB, imagePrev)
       : null;
 
-  // Promote active image only after movement completes
-  const resolvedActiveIndex = phase === "closedHold" ? pair[1] : pair[0];
+  const resolvedActiveIndex = pairIndex;
 
   const clearFrame = useCallback(() => {
     if (frameRef.current !== null) {
@@ -313,13 +403,11 @@ export function HeroCarousel({
   );
 
   const goToPair = useCallback(
-    (nextPair: number) => {
+    (nextPairIndex: number) => {
       if (pairCount === 0) return;
-      const next = ((nextPair % pairCount) + pairCount) % pairCount;
+      const next = ((nextPairIndex % pairCount) + pairCount) % pairCount;
       cycleIdRef.current += 1;
       clearFrame();
-      preloadedCloseRef.current = null;
-      preloadedOpenRef.current = null;
       if (pairIndex === pairCount - 1 && next === 0) {
         setHasLooped(true);
       }
@@ -330,14 +418,23 @@ export function HeroCarousel({
     [clearFrame, pairCount, pairIndex],
   );
 
+  // Warm the next cycle as soon as this one starts (not near the end).
+  useEffect(() => {
+    if (!imageA || !imageB) return;
+    void preloadImage(imageA.src);
+    void preloadImage(imageB.src);
+    if (imageA.video) preloadVideo(imageA.video);
+    if (imageB.video) preloadVideo(imageB.video);
+    if (imageNextA?.src) void preloadImage(imageNextA.src);
+    if (imageNextA?.video) preloadVideo(imageNextA.video);
+  }, [imageA, imageB, imageNextA, pairIndex]);
+
   useEffect(() => {
     if (pairCount === 0) return;
 
     clearFrame();
     const cycleId = cycleIdRef.current;
     startedAtRef.current = performance.now();
-    preloadedCloseRef.current = null;
-    preloadedOpenRef.current = null;
 
     const tick = (now: number) => {
       if (cycleId !== cycleIdRef.current) return;
@@ -345,34 +442,6 @@ export function HeroCarousel({
       const elapsed = now - startedAtRef.current;
       const ratio = Math.min(elapsed / heroCarouselConfig.pairCycleMs, 1);
       setProgress(ratio);
-
-      const { openHold, closing } = heroCarouselConfig.phaseEnds;
-
-      // Preload B before midpoint close
-      if (
-        !reducedMotion &&
-        preloadedCloseRef.current !== pairIndex &&
-        ratio >= openHold * 0.85
-      ) {
-        if (imageB?.src) {
-          preloadedCloseRef.current = pairIndex;
-          void preloadImage(imageB.src);
-        }
-      }
-
-      // Preload next line's A before line ends (for upcoming open)
-      if (
-        !reducedMotion &&
-        preloadedOpenRef.current !== pairIndex &&
-        ratio >= closing
-      ) {
-        const nextPair = heroPairs[(pairIndex + 1) % pairCount];
-        const nextA = nextPair ? slides[nextPair[0]] : undefined;
-        if (nextA?.src) {
-          preloadedOpenRef.current = pairIndex;
-          void preloadImage(nextA.src);
-        }
-      }
 
       if (ratio >= 1) {
         cycleIdRef.current += 1;
@@ -385,16 +454,7 @@ export function HeroCarousel({
 
     frameRef.current = requestAnimationFrame(tick);
     return clearFrame;
-  }, [
-    advancePair,
-    clearFrame,
-    imageB?.src,
-    pairCount,
-    pairIndex,
-    reducedMotion,
-    restartKey,
-    slides,
-  ]);
+  }, [advancePair, clearFrame, pairCount, pairIndex, restartKey]);
 
   if (
     slides.length === 0 ||
@@ -408,6 +468,14 @@ export function HeroCarousel({
   }
 
   const statusIndex = resolvedActiveIndex;
+  const showOpening = phase === "opening";
+  const showClosing = phase === "closing";
+  const showOpenHold = phase === "openHold";
+  const showClosedHold = phase === "closedHold";
+  const aVisible = showOpening || showOpenHold || showClosing;
+  const bVisible = showClosing || showClosedHold;
+  const prevVisible = showOpening;
+  const aClipped = showOpening || showClosing;
 
   const heroCssVars: CSSProperties | undefined =
     shutterLayout.heroHeightPx > 0
@@ -453,46 +521,64 @@ export function HeroCarousel({
               slide={imageA}
               priority={pairIndex === 0}
               playVideo={false}
-              className={`transition-opacity duration-500 ease-out ${
-                progress < heroCarouselConfig.midpoint
-                  ? "opacity-100"
-                  : "opacity-0"
-              }`}
+              visible={progress < heroCarouselConfig.midpoint}
+              className="transition-opacity duration-500 ease-out"
             />
             <SlideLayer
               key={imageB.id}
               slide={imageB}
               priority
               playVideo={false}
-              className={`transition-opacity duration-500 ease-out ${
-                progress >= heroCarouselConfig.midpoint
-                  ? "opacity-100"
-                  : "opacity-0"
-              }`}
+              visible={progress >= heroCarouselConfig.midpoint}
+              className="transition-opacity duration-500 ease-out"
             />
           </>
-        ) : layerMode.kind === "single" ? (
-          <SlideLayer
-            key={layerMode.slide.id}
-            slide={layerMode.slide}
-            priority={pairIndex === 0 || layerMode.slide.id === imageA.id}
-          />
         ) : (
           <>
-            {/* Outside stays unclipped; center uses shutter clip */}
+            {/*
+              Stable keys by slide.id so the outgoing YT layer is reused as "prev"
+              (not remounted → no flash back to image poster).
+            */}
+            {imageNextA &&
+            imageNextA.id !== imageA.id &&
+            imageNextA.id !== imageB.id &&
+            imageNextA.id !== imagePrev.id ? (
+              <SlideLayer
+                key={imageNextA.id}
+                slide={imageNextA}
+                playVideo={false}
+                visible={false}
+                className="z-[-1]"
+              />
+            ) : null}
             <SlideLayer
-              key={layerMode.outside.id}
-              slide={layerMode.outside}
-              priority
+              key={imagePrev.id}
+              slide={imagePrev}
+              playVideo={prevVisible}
+              visible={prevVisible}
               className="z-0"
             />
-            <SlideLayer
-              key={layerMode.center.id}
-              slide={layerMode.center}
-              priority={pairIndex === 0}
-              clipPath={centerClip}
-              className="z-[1]"
-            />
+            {imageB.id !== imagePrev.id ? (
+              <SlideLayer
+                key={imageB.id}
+                slide={imageB}
+                priority
+                playVideo={bVisible}
+                visible={bVisible}
+                className="z-0"
+              />
+            ) : null}
+            {imageA.id !== imagePrev.id && imageA.id !== imageB.id ? (
+              <SlideLayer
+                key={imageA.id}
+                slide={imageA}
+                priority={pairIndex === 0}
+                playVideo={showOpening || showOpenHold}
+                visible={aVisible}
+                clipPath={aClipped ? centerClip : undefined}
+                className="z-[1]"
+              />
+            ) : null}
           </>
         )}
       </div>
@@ -502,6 +588,7 @@ export function HeroCarousel({
           combineAmount={combineAmount}
           heroHeightPx={shutterLayout.heroHeightPx}
           barHeightPx={shutterLayout.barHeightPx}
+          title={title}
         />
       ) : null}
 
@@ -514,10 +601,7 @@ export function HeroCarousel({
         activeIndex={pairIndex}
         progress={progress}
         onSelect={goToPair}
-        labels={heroPairs.map(([first], index) => {
-          const slide = slides[first];
-          return slide?.alt ?? `Group ${index + 1}`;
-        })}
+        labels={cycle.labels}
       />
     </section>
   );

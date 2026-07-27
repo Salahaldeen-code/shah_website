@@ -9,14 +9,12 @@ type GalleryAlbumViewProps = {
   album: CmsGalleryAlbum;
   locale: Locale;
   copy: Dictionary["gallery"];
-  programsCopy: Dictionary["programs"];
 };
 
 export function GalleryAlbumView({
   album,
   locale,
   copy,
-  programsCopy,
 }: GalleryAlbumViewProps) {
   const intlLocale = locale === "ms" ? "ms-MY" : "en-MY";
   const dateLabel = new Date(album.date).toLocaleDateString(intlLocale, {
@@ -54,7 +52,7 @@ export function GalleryAlbumView({
           </Link>
 
           <p className="mt-5 text-[0.65rem] tracking-[0.22em] text-brand-yellow uppercase">
-            {programsCopy.categories[album.categoryKey]}
+            {album.categoryLabel}
           </p>
           <h1 className="mt-2 max-w-3xl font-display text-[clamp(2.2rem,7vw,4.25rem)] leading-[0.92] tracking-[0.04em] text-white uppercase">
             {album.title}
@@ -67,12 +65,14 @@ export function GalleryAlbumView({
               </dt>
               <dd className="mt-1">{dateLabel}</dd>
             </div>
-            <div>
-              <dt className="text-[0.58rem] tracking-[0.16em] text-white/40 uppercase">
-                {copy.labels.venue}
-              </dt>
-              <dd className="mt-1">{album.venue}</dd>
-            </div>
+            {album.venue ? (
+              <div>
+                <dt className="text-[0.58rem] tracking-[0.16em] text-white/40 uppercase">
+                  {copy.labels.venue}
+                </dt>
+                <dd className="mt-1">{album.venue}</dd>
+              </div>
+            ) : null}
             <div>
               <dt className="text-[0.58rem] tracking-[0.16em] text-white/40 uppercase">
                 {copy.labels.photos}
@@ -83,9 +83,11 @@ export function GalleryAlbumView({
             </div>
           </dl>
 
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/75">
-            {album.description}
-          </p>
+          {album.description ? (
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/75">
+              {album.description}
+            </p>
+          ) : null}
         </div>
       </header>
 

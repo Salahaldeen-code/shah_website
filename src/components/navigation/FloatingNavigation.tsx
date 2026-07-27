@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   useCallback,
@@ -13,6 +14,8 @@ import {
 import { NavigationMenu } from "@/components/navigation/NavigationMenu";
 import type { Locale } from "@/config/i18n";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+
+const brandLogoSrc = "/images/hero/logo%20white.png";
 
 type FloatingNavigationProps = {
   locale: Locale;
@@ -169,11 +172,18 @@ export function FloatingNavigation({
             <Link
               id={titleId}
               href="/"
-              className="justify-self-center font-display text-xl tracking-[0.32em] text-nav-fg uppercase transition hover:text-brand-yellow-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-yellow sm:text-2xl"
+              className="justify-self-center transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-yellow"
               aria-label={brandName}
               onClick={open ? close : undefined}
             >
-              {brandName}
+              <Image
+                src={brandLogoSrc}
+                alt={brandName}
+                width={220}
+                height={72}
+                priority
+                className="h-8 w-auto max-w-[9.5rem] object-contain object-center sm:h-9 sm:max-w-[11rem]"
+              />
             </Link>
 
             <span aria-hidden="true" className="h-9 w-9" />

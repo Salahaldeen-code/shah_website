@@ -3,12 +3,26 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 
 import type { Locale } from "@/config/i18n";
+import {
+  heroShutterConfig,
+  heroSlides,
+  type HeroSlide,
+} from "@/config/carousel";
+import {
+  defaultPartnerLogos,
+  type PartnerLogo,
+} from "@/config/partners";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import {
+  categoriesToShowcaseImages,
+  getCmsCategories,
+} from "@/lib/cms/categories";
 import { getPayloadClient, mediaUrl } from "@/lib/cms/client";
 
 async function fetchGlobal<T>(
   slug:
     | "site-settings"
+    | "home-hero"
     | "home-showcase"
     | "home-impact"
     | "home-editorial"
@@ -29,6 +43,72 @@ async function fetchGlobal<T>(
   } catch {
     return null;
   }
+}
+
+export async function getCmsHomeHero(locale: Locale) {
+  const cached = unstable_cache(
+    () => fetchGlobal<Record<string, unknown>>("home-hero", locale),
+    [`cms-home-hero-${locale}`],
+    { tags: ["cms"], revalidate: 60 },
+  );
+
+  const fromCms = await cached();
+  const fallbackTitle = heroShutterConfig.marqueeText;
+
+  const cmsSlides = Array.isArray(fromCms?.slides)
+    ? (fromCms.slides as {
+        image?: unknown;
+        video?: unknown;
+        alt?: string;
+        youtubeId?: string | null;
+        id?: string | null;
+      }[])
+        .map((row, index): HeroSlide | null => {
+          const src = mediaUrl(row.image as never, "");
+          if (!src) return null;
+          const videoSrc = mediaUrl(row.video as never, "");
+          const youtubeId =
+            !videoSrc && row.youtubeId?.trim()
+              ? row.youtubeId.trim()
+              : undefined;
+          return {
+            id: row.id ? String(row.id) : `cms-hero-${index}`,
+            src,
+            alt: row.alt?.trim() || `Hero slide ${index + 1}`,
+            ...(videoSrc ? { video: videoSrc } : {}),
+            ...(youtubeId ? { youtubeId } : {}),
+          };
+        })
+        .filter((slide): slide is HeroSlide => slide !== null)
+    : [];
+
+  const cmsPartners = Array.isArray(fromCms?.partners)
+    ? (fromCms.partners as {
+        logo?: unknown;
+        name?: string;
+        url?: string | null;
+        id?: string | null;
+      }[])
+        .map((row, index): PartnerLogo | null => {
+          const src = mediaUrl(row.logo as never, "");
+          if (!src) return null;
+          const href = row.url?.trim() || undefined;
+          return {
+            id: row.id ? String(row.id) : `cms-partner-${index}`,
+            src,
+            alt: row.name?.trim() || `Partner ${index + 1}`,
+            ...(href ? { href } : {}),
+          };
+        })
+        .filter((partner): partner is PartnerLogo => partner !== null)
+    : [];
+
+  return {
+    title: String(fromCms?.title ?? fallbackTitle).trim() || fallbackTitle,
+    slides: cmsSlides.length >= 1 ? cmsSlides : heroSlides,
+    partnersLabel: String(fromCms?.partnersLabel ?? "").trim(),
+    partners: cmsPartners.length > 0 ? cmsPartners : defaultPartnerLogos,
+  };
 }
 
 export async function getCmsAboutPage(locale: Locale) {
@@ -135,56 +215,36 @@ export async function getCmsShowcase(locale: Locale) {
   const cached = unstable_cache(
     () => fetchGlobal<Record<string, unknown>>("home-showcase", locale),
     [`cms-showcase-${locale}`],
-    { tags: ["cms"], revalidate: 60 },
+    { tags: ["cms"], revalidate: 10 },
   );
 
-  const fromCms = await cached();
+  const [fromCms, categories] = await Promise.all([
+    cached(),
+    getCmsCategories(locale),
+  ]);
   const dictionary = await getDictionary(locale);
+  const fromCategories = categoriesToShowcaseImages(categories);
 
-  if (!fromCms?.brandLine1) {
-    return {
-      copy: dictionary.showcase,
-      sideImages: null as
-        | { id: string; src: string; alt: string }[]
-        | null,
-      gridImages: null as
-        | { id: string; src: string; alt: string }[]
-        | null,
-    };
-  }
-
-  const sideImages = Array.isArray(fromCms.sideImages)
-    ? (fromCms.sideImages as { image?: unknown; alt?: string }[]).map(
-        (row, index) => ({
-          id: `cms-side-${index}`,
-          src: mediaUrl(row.image as never, ""),
-          alt: row.alt || "",
-        }),
-      ).filter((img) => img.src)
-    : null;
-
-  const gridImages = Array.isArray(fromCms.gridImages)
-    ? (fromCms.gridImages as { image?: unknown; alt?: string }[]).map(
-        (row, index) => ({
-          id: `cms-grid-${index}`,
-          src: mediaUrl(row.image as never, ""),
-          alt: row.alt || "",
-        }),
-      ).filter((img) => img.src)
-    : null;
+  const copy = fromCms?.brandLine1
+    ? {
+        brandLine1: String(fromCms.brandLine1),
+        brandLine2: String(fromCms.brandLine2),
+        brandAmp: String(fromCms.brandAmp),
+        brandLine3: String(fromCms.brandLine3),
+        script: String(fromCms.script),
+        tagline: String(fromCms.tagline),
+        viewMore: String(fromCms.viewMore ?? dictionary.showcase.viewMore),
+      }
+    : dictionary.showcase;
 
   return {
-    copy: {
-      brandLine1: String(fromCms.brandLine1),
-      brandLine2: String(fromCms.brandLine2),
-      brandAmp: String(fromCms.brandAmp),
-      brandLine3: String(fromCms.brandLine3),
-      script: String(fromCms.script),
-      tagline: String(fromCms.tagline),
-      viewMore: String(fromCms.viewMore ?? dictionary.showcase.viewMore),
-    },
-    sideImages: sideImages?.length ? sideImages : null,
-    gridImages: gridImages?.length ? gridImages : null,
+    copy,
+    sideImages: fromCategories.sideImages.length
+      ? fromCategories.sideImages
+      : null,
+    gridImages: fromCategories.gridImages.length
+      ? fromCategories.gridImages
+      : null,
   };
 }
 
@@ -220,7 +280,7 @@ export async function getCmsImpact(locale: Locale) {
       background: {
         src: mediaUrl(
           fromCms.background as never,
-          "/images/app/impact-triathlon.png",
+          "/images/app/MY.jpg",
         ),
         alt: "Impact background",
       },

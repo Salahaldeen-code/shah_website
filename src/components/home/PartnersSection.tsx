@@ -1,9 +1,9 @@
-import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { PartnersMarquee } from "@/components/home/PartnersMarquee";
 import { getCmsHomeHero } from "@/lib/cms";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getLocale } from "@/lib/i18n/locale";
 
-export async function HeroSection() {
+export async function PartnersSection() {
   const locale = await getLocale();
   const [dictionary, hero] = await Promise.all([
     getDictionary(locale),
@@ -11,13 +11,9 @@ export async function HeroSection() {
   ]);
 
   return (
-    <HeroCarousel
-      slides={hero.slides}
-      title={hero.title}
-      labels={{
-        carousel: dictionary.a11y.carousel,
-        slideStatus: dictionary.a11y.slideStatus,
-      }}
+    <PartnersMarquee
+      label={hero.partnersLabel || dictionary.partners.label}
+      partners={hero.partners}
     />
   );
 }

@@ -38,12 +38,26 @@ type ActivitiesStageProps = {
   membershipImage?: string;
 };
 
-function resolveTitle(item: StageActivity, copy: ActivitiesCopy) {
-  return item.title ?? copy.items[item.titleKey];
+function resolveTitle(item: StageActivity | undefined, copy: ActivitiesCopy) {
+  if (!item) return "";
+  return item.title ?? copy.items[item.titleKey] ?? "";
 }
 
-function resolveTag(item: StageActivity, copy: ActivitiesCopy) {
+function resolveTag(item: StageActivity | undefined, copy: ActivitiesCopy) {
+  if (!item) return "";
   return copy.tags[item.tagKey] ?? item.tag ?? "";
+}
+
+function slotOf(
+  pair: ActivityPair,
+  slot: ActivityItem["slot"],
+  fallbackIndex: number,
+): StageActivity | undefined {
+  return (
+    (pair.items.find((item) => item.slot === slot) as StageActivity | undefined) ??
+    (pair.items[fallbackIndex] as StageActivity | undefined) ??
+    (pair.items[0] as StageActivity | undefined)
+  );
 }
 
 function clamp(value: number, min = 0, max = 1) {
@@ -250,8 +264,8 @@ function ActivityPairLayer({
   showTopLeft?: boolean;
   showBottomRight?: boolean;
 }) {
-  const topLeft = pair.items.find((item) => item.slot === "topLeft")!;
-  const bottomRight = pair.items.find((item) => item.slot === "bottomRight")!;
+  const topLeft = slotOf(pair, "topLeft", 0);
+  const bottomRight = slotOf(pair, "bottomRight", 1);
 
   return (
     <div
@@ -264,7 +278,7 @@ function ActivityPairLayer({
       }}
       aria-hidden={inert || opacity < 0.15 ? true : undefined}
     >
-      {showTopLeft ? (
+      {showTopLeft && topLeft ? (
         <ActivityPanel
           item={topLeft}
           title={resolveTitle(topLeft, copy)}
@@ -273,7 +287,7 @@ function ActivityPairLayer({
           style={{ animation: "none" }}
         />
       ) : null}
-      {showBottomRight ? (
+      {showBottomRight && bottomRight ? (
         <ActivityPanel
           item={bottomRight}
           title={resolveTitle(bottomRight, copy)}
@@ -400,9 +414,16 @@ export function ActivitiesStage({
   const stageLift = reducedMotion ? 0 : smooth(range(progress, 0.28, 0.94));
   const rise = reducedMotion ? 1 : smooth(range(progress, 0.3, 0.78));
 
-  const pairA = stagePairs[0]!;
-  const pairB = stagePairs[1] ?? stagePairs[0]!;
-  const featured = pairB.items.find((item) => item.slot === "bottomRight")!;
+  const pairA = stagePairs[0] ?? {
+    id: "pair-a",
+    items: [stageItems[0], stageItems[1]].filter(Boolean) as ActivityPair["items"],
+  };
+  const pairB = stagePairs[1] ?? stagePairs[0] ?? pairA;
+  const featured =
+    slotOf(pairB, "bottomRight", 1) ??
+    slotOf(pairA, "bottomRight", 1) ??
+    stageItems[stageItems.length - 1] ??
+    stageItems[0];
 
   const pairAOpacity = Math.max(0, 1 - pairShift * 1.2);
   const danceOpacity =
@@ -463,18 +484,20 @@ export function ActivitiesStage({
                 shiftY="0%"
                 opacity={1}
               />
-              <ActivityPanel
-                item={featured}
-                title={resolveTitle(featured, copy)}
-                tag={resolveTag(featured, copy)}
-                className={featuredCardClass}
-                style={{
-                  animation: "none",
-                  left: "76%",
-                  top: "48%",
-                  transform: "translate3d(-50%, -40%, 0)",
-                }}
-              />
+              {featured ? (
+                <ActivityPanel
+                  item={featured}
+                  title={resolveTitle(featured, copy)}
+                  tag={resolveTag(featured, copy)}
+                  className={featuredCardClass}
+                  style={{
+                    animation: "none",
+                    left: "76%",
+                    top: "48%",
+                    transform: "translate3d(-50%, -40%, 0)",
+                  }}
+                />
+              ) : null}
               <div className="pointer-events-none relative z-10 md:absolute md:inset-0 md:flex md:items-center md:justify-center">
                 <ActivitiesTitleDrum
                   title={copy.title}
@@ -547,13 +570,15 @@ export function ActivitiesStage({
                       />
                     ) : null}
 
-                    <ActivityPanel
-                      item={featured}
-                      title={resolveTitle(featured, copy)}
-                      tag={resolveTag(featured, copy)}
-                      className={featuredCardClass}
-                      style={featuredStyle}
-                    />
+                    {featured ? (
+                      <ActivityPanel
+                        item={featured}
+                        title={resolveTitle(featured, copy)}
+                        tag={resolveTag(featured, copy)}
+                        className={featuredCardClass}
+                        style={featuredStyle}
+                      />
+                    ) : null}
                   </div>
                 </div>
               </div>

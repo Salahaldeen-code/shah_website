@@ -12,9 +12,11 @@ import { getPayload } from "payload";
 
 import config from "../src/payload.config.ts";
 import { activityPairs } from "../src/config/activities.ts";
+import { heroShutterConfig, heroSlides } from "../src/config/carousel.ts";
 import { committeeMembers } from "../src/config/committee.ts";
 import { galleryAlbums } from "../src/config/gallery.ts";
 import { impactImages } from "../src/config/impact.ts";
+import { defaultPartnerLogos } from "../src/config/partners.ts";
 import { programs } from "../src/config/programs.ts";
 import { showcaseGridImages, showcaseSideImages } from "../src/config/showcase.ts";
 import en from "../src/dictionaries/en.json" with { type: "json" };
@@ -86,11 +88,7 @@ async function ensureMedia(
 
 async function clearCollection(
   payload: Awaited<ReturnType<typeof getPayload>>,
-  slug:
-    | "programs"
-    | "gallery-albums"
-    | "activities"
-    | "committee-members",
+  slug: "programs" | "categories" | "activities" | "committee-members",
 ) {
   const existing = await payload.find({
     collection: slug,
@@ -114,7 +112,7 @@ async function seed() {
     "/images/hero/image4.jpg",
     "/images/hero/image5.jpg",
     "/images/hero/image6.jpg",
-    "/images/app/impact-triathlon.png",
+    "/images/app/MY.jpg",
     "/images/app/badminton-cutout.png",
     "/images/app/contact.jpg",
     "/videos/activities/outdoor.mp4",
@@ -168,54 +166,60 @@ async function seed() {
   }
   console.log(`  programs: ${programs.length}`);
 
-  // --- Gallery ---
-  await clearCollection(payload, "gallery-albums");
-  for (const album of galleryAlbums) {
-    const coverId = await ensureMedia(payload, album.cover, album.slug);
-    if (!coverId) continue;
+  // --- Categories (Active Life collage + activity taxonomy) ---
+  await clearCollection(payload, "categories");
+  const categorySeed = [
+    ...showcaseSideImages.left,
+    ...showcaseSideImages.right,
+    ...showcaseGridImages.slice(0, 4),
+  ];
+  const categoryIds: (number | string)[] = [];
+  const categoryByTag: Partial<
+    Record<"outdoor" | "community" | "kids" | "wellness", number | string>
+  > = {};
 
-    const photoIds: { image: number | string }[] = [];
-    for (const photo of album.photos) {
-      const id = await ensureMedia(payload, photo, `${album.slug}-photo`);
-      if (id) photoIds.push({ image: id });
-    }
+  for (let i = 0; i < categorySeed.length; i += 1) {
+    const img = categorySeed[i]!;
+    const imageId = await ensureMedia(payload, img.src, img.alt);
+    if (!imageId) continue;
 
-    const albumCopy = en.gallery.albums[album.slug];
-    const albumCopyMs = ms.gallery.albums[album.slug];
+    const titleEn =
+      i < 4
+        ? (["Outdoor", "Community", "Kids", "Wellness"] as const)[i]!
+        : img.alt || `Category ${i + 1}`;
+    const titleMs =
+      i < 4
+        ? (["Luar", "Komuniti", "Kanak-kanak", "Kesejahteraan"] as const)[i]!
+        : img.alt || `Kategori ${i + 1}`;
 
     const created = await payload.create({
-      collection: "gallery-albums",
+      collection: "categories",
       locale: "en",
       data: {
-        title: albumCopy.title,
-        slug: album.slug,
-        summary: albumCopy.summary,
-        description: albumCopy.description,
-        date: album.date,
-        venue: en.programs.venues[album.venueKey],
-        category: album.categoryKey,
-        cover: coverId,
-        photos: photoIds,
+        title: titleEn,
+        image: imageId,
+        order: i,
       },
     });
-
     await payload.update({
-      collection: "gallery-albums",
+      collection: "categories",
       id: created.id,
       locale: "ms",
-      data: {
-        title: albumCopyMs.title,
-        summary: albumCopyMs.summary,
-        description: albumCopyMs.description,
-        venue: ms.programs.venues[album.venueKey],
-      },
+      data: { title: titleMs },
     });
-  }
-  console.log(`  gallery-albums: ${galleryAlbums.length}`);
 
-  // --- Activities ---
+    categoryIds.push(created.id);
+    if (i < 4) {
+      const keys = ["outdoor", "community", "kids", "wellness"] as const;
+      categoryByTag[keys[i]!] = created.id;
+    }
+  }
+  console.log(`  categories: ${categoryIds.length}`);
+
+  // --- Activities (homepage cards + gallery albums) ---
   await clearCollection(payload, "activities");
   let order = 0;
+
   for (const pair of activityPairs) {
     for (const item of pair.items) {
       const imageId = await ensureMedia(
@@ -230,17 +234,48 @@ async function seed() {
         `${item.titleKey}-video`,
       );
 
+      const categoryId =
+        categoryByTag[item.tagKey] ?? categoryIds[order % categoryIds.length];
+      if (!categoryId) continue;
+
+      const albumExtra = galleryAlbums[order % galleryAlbums.length];
+      const photoRows: { image: number | string }[] = [];
+      if (albumExtra) {
+        for (const photo of albumExtra.photos) {
+          const id = await ensureMedia(
+            payload,
+            photo,
+            `${item.titleKey}-photo`,
+          );
+          if (id) photoRows.push({ image: id });
+        }
+      }
+
+      const slug = item.id.replace(/^activity-/, "");
+      const albumCopy = albumExtra
+        ? en.gallery.albums[albumExtra.slug]
+        : undefined;
+      const albumCopyMs = albumExtra
+        ? ms.gallery.albums[albumExtra.slug]
+        : undefined;
+
       const created = await payload.create({
         collection: "activities",
         locale: "en",
         data: {
           title: en.activities.items[item.titleKey],
-          tag: item.tagKey,
+          slug,
+          category: categoryId,
+          summary: albumCopy?.summary || en.activities.description,
+          description: albumCopy?.description || "",
+          date: albumExtra?.date || new Date().toISOString().slice(0, 10),
+          venue: albumExtra ? en.programs.venues[albumExtra.venueKey] : "",
           slot: item.slot,
           pair: pair.id,
-          order: order++,
+          order,
           image: imageId,
           ...(videoId ? { video: videoId } : {}),
+          photos: photoRows,
         },
       });
 
@@ -250,8 +285,13 @@ async function seed() {
         locale: "ms",
         data: {
           title: ms.activities.items[item.titleKey],
+          summary: albumCopyMs?.summary || ms.activities.description,
+          description: albumCopyMs?.description || "",
+          venue: albumExtra ? ms.programs.venues[albumExtra.venueKey] : "",
         },
       });
+
+      order += 1;
     }
   }
   console.log(`  activities: ${order}`);
@@ -304,31 +344,63 @@ async function seed() {
   console.log(`  committee-members: ${committeeMembers.length}`);
 
   // --- Globals ---
-  const sideIds = await Promise.all(
-    [
-      ...showcaseSideImages.left,
-      ...showcaseSideImages.right,
-    ].map(async (img) => {
-      const id = await ensureMedia(payload, img.src, img.alt);
-      return id ? { image: id, alt: img.alt } : null;
-    }),
-  );
+  const heroSlideRows = (
+    await Promise.all(
+      heroSlides.map(async (slide) => {
+        const uploadSrc = slide.src.startsWith("http")
+          ? "/images/hero/image1.jpg"
+          : slide.src;
+        const id = await ensureMedia(payload, uploadSrc, slide.alt);
+        if (!id) return null;
+        return {
+          image: id,
+          alt: slide.alt,
+          ...(slide.youtubeId ? { youtubeId: slide.youtubeId } : {}),
+        };
+      }),
+    )
+  ).filter(Boolean);
 
-  const gridIds = await Promise.all(
-    showcaseGridImages.map(async (img) => {
-      const id = await ensureMedia(payload, img.src, img.alt);
-      return id ? { image: id, alt: img.alt } : null;
-    }),
-  );
+  const partnerRows = (
+    await Promise.all(
+      defaultPartnerLogos.map(async (partner) => {
+        const id = await ensureMedia(payload, partner.src, partner.alt);
+        if (!id) return null;
+        return {
+          logo: id,
+          name: partner.alt,
+          ...(partner.href ? { url: partner.href } : {}),
+        };
+      }),
+    )
+  ).filter(Boolean);
 
+  await payload.updateGlobal({
+    slug: "home-hero",
+    locale: "en",
+    data: {
+      title: heroShutterConfig.marqueeText,
+      slides: heroSlideRows,
+      partnersLabel: en.partners.label,
+      partners: partnerRows,
+    },
+  });
+  await payload.updateGlobal({
+    slug: "home-hero",
+    locale: "ms",
+    data: {
+      title: heroShutterConfig.marqueeText,
+      slides: heroSlideRows,
+      partnersLabel: ms.partners.label,
+      partners: partnerRows,
+    },
+  });
+
+  // Active Life collage images come from Categories — showcase global is brand copy only
   await payload.updateGlobal({
     slug: "home-showcase",
     locale: "en",
-    data: {
-      ...en.showcase,
-      sideImages: sideIds.filter(Boolean),
-      gridImages: gridIds.filter(Boolean),
-    },
+    data: { ...en.showcase },
   });
   await payload.updateGlobal({
     slug: "home-showcase",

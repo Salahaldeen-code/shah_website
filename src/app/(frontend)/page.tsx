@@ -5,13 +5,18 @@ import { EditorialShowcaseSection } from "@/components/home/EditorialShowcaseSec
 import { GallerySection } from "@/components/home/GallerySection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { ImpactSection } from "@/components/home/ImpactSection";
+import { PartnersSection } from "@/components/home/PartnersSection";
 import { PortfolioSection } from "@/components/home/PortfolioSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
+
+/** Keep homepage close to CMS edits (admin save also revalidates the `cms` tag). */
+export const revalidate = 10;
 
 export default function HomePage() {
   return (
     <main className="pb-[var(--content-bottom-pad)]">
       <HeroSection />
+      <PartnersSection />
       <EditorialShowcaseSection />
       <ActiveLifeSection />
       <ImpactSection />

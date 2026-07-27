@@ -68,9 +68,9 @@ export interface Config {
   blocks: {};
   collections: {
     programs: Program;
+    categories: Category;
     activities: Activity;
     'committee-members': CommitteeMember;
-    'gallery-albums': GalleryAlbum;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -81,9 +81,9 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     programs: ProgramsSelect<false> | ProgramsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     activities: ActivitiesSelect<false> | ActivitiesSelect<true>;
     'committee-members': CommitteeMembersSelect<false> | CommitteeMembersSelect<true>;
-    'gallery-albums': GalleryAlbumsSelect<false> | GalleryAlbumsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -165,6 +165,19 @@ export interface Program {
   start: string;
   end: string;
   image: number | Media;
+  /**
+   * Optional muted loop for richer program cards/previews (not required for the Upcoming Programs table).
+   */
+  video?: (number | null) | Media;
+  /**
+   * Attached images for this program (works like the Activities album photos field).
+   */
+  photos?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -190,7 +203,22 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * Home → activity photo cards
+ * Activity categories — also power the Active Life collage images on the homepage
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  _order?: string | null;
+  title: string;
+  image: number | Media;
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Activities with category, media, and photo album — used on home + /gallery
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "activities".
@@ -198,13 +226,45 @@ export interface Media {
 export interface Activity {
   id: number;
   _order?: string | null;
+  /**
+   * URL path under /gallery/[slug]
+   */
+  slug: string;
   title: string;
-  tag: 'outdoor' | 'community' | 'kids' | 'wellness';
+  /**
+   * Pick from Categories collection
+   */
+  category: number | Category;
+  summary?: string | null;
+  description?: string | null;
+  /**
+   * Shown on the gallery album page
+   */
+  date?: string | null;
+  venue?: string | null;
+  /**
+   * Homepage card + gallery cover
+   */
+  image: number | Media;
+  /**
+   * Optional muted loop on the homepage activity card
+   */
+  video?: (number | null) | Media;
+  /**
+   * Gallery album photos for this activity (replaces separate albums)
+   */
+  photos?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Position in the Activities stage pair
+   */
   slot: 'topLeft' | 'bottomRight';
   pair: 'pair-a' | 'pair-b';
   order?: number | null;
-  image: number | Media;
-  video?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -226,31 +286,6 @@ export interface CommitteeMember {
     instagram?: string | null;
     behance?: string | null;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Gallery page → albums and photos
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "gallery-albums".
- */
-export interface GalleryAlbum {
-  id: number;
-  slug: string;
-  title: string;
-  summary?: string | null;
-  description?: string | null;
-  date: string;
-  venue?: string | null;
-  category?: ('team' | 'racket' | 'fitness' | 'aquatic' | 'outdoor' | 'youth') | null;
-  cover: number | Media;
-  photos?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -310,16 +345,16 @@ export interface PayloadLockedDocument {
         value: number | Program;
       } | null)
     | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
         relationTo: 'activities';
         value: number | Activity;
       } | null)
     | ({
         relationTo: 'committee-members';
         value: number | CommitteeMember;
-      } | null)
-    | ({
-        relationTo: 'gallery-albums';
-        value: number | GalleryAlbum;
       } | null)
     | ({
         relationTo: 'media';
@@ -384,6 +419,25 @@ export interface ProgramsSelect<T extends boolean = true> {
   start?: T;
   end?: T;
   image?: T;
+  video?: T;
+  photos?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  _order?: T;
+  title?: T;
+  image?: T;
+  order?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -393,13 +447,24 @@ export interface ProgramsSelect<T extends boolean = true> {
  */
 export interface ActivitiesSelect<T extends boolean = true> {
   _order?: T;
+  slug?: T;
   title?: T;
-  tag?: T;
+  category?: T;
+  summary?: T;
+  description?: T;
+  date?: T;
+  venue?: T;
+  image?: T;
+  video?: T;
+  photos?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
   slot?: T;
   pair?: T;
   order?: T;
-  image?: T;
-  video?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -419,28 +484,6 @@ export interface CommitteeMembersSelect<T extends boolean = true> {
         linkedin?: T;
         instagram?: T;
         behance?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "gallery-albums_select".
- */
-export interface GalleryAlbumsSelect<T extends boolean = true> {
-  slug?: T;
-  title?: T;
-  summary?: T;
-  description?: T;
-  date?: T;
-  venue?: T;
-  category?: T;
-  cover?: T;
-  photos?:
-    | T
-    | {
-        image?: T;
-        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -526,13 +569,56 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Top of homepage — shutter carousel (slides/images are in code for now)
+ * Top of homepage — shutter carousel, title text, and partners marquee
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-hero".
  */
 export interface HomeHero {
   id: number;
+  /**
+   * Word repeated across the yellow shutter bars (e.g. PSR).
+   */
+  title: string;
+  /**
+   * One indicator per slide. Cycle: still image → video (file wins over YouTube ID).
+   */
+  slides?:
+    | {
+        /**
+         * Shown in the first half of this slide’s indicator cycle (also used as video poster).
+         */
+        image: number | Media;
+        alt: string;
+        /**
+         * Optional. Plays muted & looped in the second half of this slide. Takes priority over YouTube ID.
+         */
+        video?: (number | null) | Media;
+        /**
+         * Optional fallback when no video file is uploaded. e.g. L3374C3OyrY from youtu.be/L3374C3OyrY.
+         */
+        youtubeId?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Small eyebrow above the logo marquee (e.g. Partners).
+   */
+  partnersLabel?: string | null;
+  /**
+   * Logos in the infinite strip under the hero. Leave empty to use the default files in /images/hero/Partners.
+   */
+  partners?:
+    | {
+        logo: number | Media;
+        name: string;
+        /**
+         * Optional. Opens when the logo is clicked.
+         */
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -564,7 +650,7 @@ export interface HomeEditorial {
   createdAt?: string | null;
 }
 /**
- * Home → Active Life brand title, tagline, and collage images
+ * Home → Active Life brand copy. Collage images come from Categories.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-showcase".
@@ -578,20 +664,6 @@ export interface HomeShowcase {
   script: string;
   tagline: string;
   viewMore?: string | null;
-  sideImages?:
-    | {
-        image: number | Media;
-        alt?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  gridImages?:
-    | {
-        image: number | Media;
-        alt?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -799,6 +871,25 @@ export interface SiteSetting {
  * via the `definition` "home-hero_select".
  */
 export interface HomeHeroSelect<T extends boolean = true> {
+  title?: T;
+  slides?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        video?: T;
+        youtubeId?: T;
+        id?: T;
+      };
+  partnersLabel?: T;
+  partners?:
+    | T
+    | {
+        logo?: T;
+        name?: T;
+        url?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -828,20 +919,6 @@ export interface HomeShowcaseSelect<T extends boolean = true> {
   script?: T;
   tagline?: T;
   viewMore?: T;
-  sideImages?:
-    | T
-    | {
-        image?: T;
-        alt?: T;
-        id?: T;
-      };
-  gridImages?:
-    | T
-    | {
-        image?: T;
-        alt?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

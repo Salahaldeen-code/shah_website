@@ -143,7 +143,7 @@ export const socialFooterConfig = {
       href: "https://www.tiktok.com/",
       images: [
         "/images/hero/image2.jpg",
-        "/images/app/impact-triathlon.png",
+        "/images/app/MY.jpg",
       ],
       sizePx: 280,
       position: { left: 74, top: 18 },

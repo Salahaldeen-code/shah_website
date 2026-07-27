@@ -8,14 +8,12 @@ import type { CmsGalleryAlbum } from "@/lib/cms/gallery";
 type GalleryIndexProps = {
   locale: Locale;
   copy: Dictionary["gallery"];
-  programsCopy: Dictionary["programs"];
   albums: CmsGalleryAlbum[];
 };
 
 export function GalleryIndex({
   locale,
   copy,
-  programsCopy,
   albums,
 }: GalleryIndexProps) {
   const intlLocale = locale === "ms" ? "ms-MY" : "en-MY";
@@ -63,7 +61,7 @@ export function GalleryIndex({
                       className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
                     />
                     <span className="absolute bottom-3 left-3 rounded-sm bg-black/50 px-2 py-1 text-[0.58rem] tracking-[0.14em] text-brand-yellow uppercase backdrop-blur-sm">
-                      {programsCopy.categories[album.categoryKey]}
+                      {album.categoryLabel}
                     </span>
                   </div>
                   <div className="p-4 sm:p-5">
@@ -72,12 +70,18 @@ export function GalleryIndex({
                     </h2>
                     <p className="mt-1.5 text-xs text-white/50">
                       {dateLabel}
-                      <span className="mx-1.5 text-white/25">·</span>
-                      {album.venue}
+                      {album.venue ? (
+                        <>
+                          <span className="mx-1.5 text-white/25">·</span>
+                          {album.venue}
+                        </>
+                      ) : null}
                     </p>
-                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/60">
-                      {album.summary}
-                    </p>
+                    {album.summary ? (
+                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/60">
+                        {album.summary}
+                      </p>
+                    ) : null}
                     <p className="mt-4 text-[0.65rem] tracking-[0.16em] text-brand-yellow uppercase">
                       {copy.viewAlbum}
                       <span aria-hidden="true" className="ml-1">

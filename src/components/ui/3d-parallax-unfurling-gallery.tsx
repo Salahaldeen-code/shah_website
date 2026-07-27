@@ -17,7 +17,7 @@ import {
 } from "framer-motion";
 
 /** Unique local sports frames — column loops reuse these without source duplicates. */
-const GALLERY_IMAGES = [
+const FALLBACK_GALLERY_IMAGES = [
   "/images/hero/image1.jpg",
   "/images/hero/image2.jpg",
   "/images/hero/image3.jpg",
@@ -32,7 +32,7 @@ const GALLERY_IMAGES = [
   "/images/hero/slide-6.png",
 ] as const;
 
-const IMAGE_ALTS = [
+const FALLBACK_IMAGE_ALTS = [
   "Athletes on the track",
   "Community football on the field",
   "Outdoor basketball session",
@@ -52,6 +52,11 @@ export type GalleryReelCopy = {
   title: string;
   subtitle: string;
   cta: string;
+};
+
+export type GalleryReelImage = {
+  src: string;
+  alt: string;
 };
 
 type ImageCardProps = {
@@ -81,6 +86,8 @@ function ImageCard({ src, alt, onLoad }: ImageCardProps) {
 
 type ThreeDParallaxUnfurlingGalleryProps = {
   copy?: GalleryReelCopy;
+  /** Activity album images (shuffled). Falls back to static hero frames. */
+  images?: GalleryReelImage[];
 };
 
 const DEFAULT_COPY: GalleryReelCopy = {
@@ -92,6 +99,7 @@ const DEFAULT_COPY: GalleryReelCopy = {
 
 export default function ThreeDParallaxUnfurlingGallery({
   copy = DEFAULT_COPY,
+  images,
 }: ThreeDParallaxUnfurlingGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
@@ -108,16 +116,27 @@ export default function ThreeDParallaxUnfurlingGallery({
     return () => clearTimeout(t);
   }, []);
 
+  const sourceImages = useMemo((): GalleryReelImage[] => {
+    if (images?.length) return images;
+    return FALLBACK_GALLERY_IMAGES.map((src, index) => ({
+      src,
+      alt: FALLBACK_IMAGE_ALTS[index] ?? "PSR gallery moment",
+    }));
+  }, [images]);
+
   const colMedia = useMemo(() => {
     const columns = [0, 1, 2, 3].map((offset) => {
-      const base = GALLERY_IMAGES.filter((_, i) => i % 4 === offset).map(
-        (src, i) => ({
-          src,
-          alt: IMAGE_ALTS[offset + i * 4] ?? "PSR gallery moment",
-        }),
-      );
-      // Loop tiles for continuous column travel without repeating the source list.
-      return [...base, ...base, ...base];
+      const base = sourceImages
+        .filter((_, i) => i % 4 === offset)
+        .map((item) => ({
+          src: item.src,
+          alt: item.alt || "PSR gallery moment",
+        }));
+      const filled =
+        base.length > 0
+          ? base
+          : sourceImages.slice(0, Math.max(1, sourceImages.length));
+      return [...filled, ...filled, ...filled];
     });
 
     return {
@@ -126,7 +145,7 @@ export default function ThreeDParallaxUnfurlingGallery({
       col3: columns[2],
       col4: columns[3],
     };
-  }, []);
+  }, [sourceImages]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,

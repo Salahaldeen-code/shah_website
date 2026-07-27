@@ -13,12 +13,22 @@ import {
   type ActivityTagKey,
 } from "@/config/activities";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { getPayloadClient, mediaUrl } from "@/lib/cms/client";
+import { getPayloadClient, resolveMediaUrl } from "@/lib/cms/client";
 
 export type CmsActivityItem = ActivityItem & {
   title: string;
   tag: string;
+  slug: string;
+  photos: string[];
 };
+
+function categoryTitle(category: unknown, fallback: string): string {
+  if (category && typeof category === "object" && "title" in category) {
+    const title = (category as { title?: string }).title;
+    if (title) return title;
+  }
+  return fallback;
+}
 
 async function fetchActivities(locale: Locale) {
   try {
@@ -27,32 +37,58 @@ async function fetchActivities(locale: Locale) {
       payload.find({
         collection: "activities",
         locale,
-        depth: 1,
-        limit: 20,
+        depth: 2,
+        limit: 50,
         sort: "_order",
       }),
       payload.findGlobal({
         slug: "home-activities",
         locale,
-        depth: 1,
+        depth: 2,
       }),
     ]);
 
     if (!items.docs.length) return null;
 
-    const mapped: CmsActivityItem[] = items.docs.map((doc) => {
-      const tagKey = (doc.tag || "outdoor") as ActivityTagKey;
-      return {
-        id: String(doc.id),
-        slot: (doc.slot || "topLeft") as ActivitySlot,
-        titleKey: "mountainBiking",
-        tagKey,
-        image: mediaUrl(doc.image, "/images/hero/image5.jpg"),
-        video: mediaUrl(doc.video, "/videos/activities/outdoor.mp4"),
-        title: doc.title,
-        tag: tagKey,
-      };
-    });
+    const mapped: CmsActivityItem[] = await Promise.all(
+      items.docs.map(async (doc, index) => {
+        const tagLabel = categoryTitle(doc.category, "Activity");
+        const fallbackTag = (
+          ["outdoor", "community", "kids", "wellness"] as ActivityTagKey[]
+        )[index % 4]!;
+
+        const image = await resolveMediaUrl(
+          payload,
+          doc.image as never,
+          "/images/hero/image5.jpg",
+        );
+        const video = await resolveMediaUrl(
+          payload,
+          doc.video as never,
+          "/videos/activities/outdoor.mp4",
+        );
+        const photos = (
+          await Promise.all(
+            (doc.photos || []).map((row) =>
+              resolveMediaUrl(payload, row?.image as never, ""),
+            ),
+          )
+        ).filter(Boolean);
+
+        return {
+          id: String(doc.id),
+          slug: doc.slug || String(doc.id),
+          slot: (doc.slot || "topLeft") as ActivitySlot,
+          titleKey: "mountainBiking",
+          tagKey: fallbackTag,
+          image,
+          video,
+          title: doc.title,
+          tag: tagLabel,
+          photos,
+        };
+      }),
+    );
 
     const byPair = new Map<string, CmsActivityItem[]>();
     items.docs.forEach((doc, index) => {
@@ -62,19 +98,40 @@ async function fetchActivities(locale: Locale) {
       byPair.set(key, list);
     });
 
-    const pairs: ActivityPair[] = [...byPair.entries()].map(([id, pairItems]) => ({
-      id,
-      items: [
-        pairItems.find((i) => i.slot === "topLeft") ?? pairItems[0]!,
-        pairItems.find((i) => i.slot === "bottomRight") ??
+    const pairs: ActivityPair[] = [...byPair.entries()]
+      .map(([id, pairItems]) => {
+        const top =
+          pairItems.find((i) => i.slot === "topLeft") ?? pairItems[0];
+        const bottom =
+          pairItems.find((i) => i.slot === "bottomRight" && i.id !== top?.id) ??
+          pairItems.find((i) => i.id !== top?.id) ??
           pairItems[1] ??
-          pairItems[0]!,
-      ] as ActivityPair["items"],
-    }));
+          top;
+        if (!top || !bottom) return null;
+        return {
+          id,
+          items: [
+            { ...top, slot: "topLeft" as const },
+            { ...bottom, slot: "bottomRight" as const },
+          ] as ActivityPair["items"],
+        };
+      })
+      .filter((pair): pair is ActivityPair => pair !== null);
+
+    const orderedPairs = ["pair-a", "pair-b"]
+      .map((id) => pairs.find((p) => p.id === id))
+      .filter((pair): pair is ActivityPair => Boolean(pair));
+    const remaining = pairs.filter(
+      (p) => p.id !== "pair-a" && p.id !== "pair-b",
+    );
+    const stagePairs =
+      orderedPairs.length + remaining.length >= 1
+        ? [...orderedPairs, ...remaining]
+        : staticPairs;
 
     return {
       items: mapped,
-      pairs: pairs.length ? pairs : staticPairs,
+      pairs: stagePairs,
       ui: {
         title: ui.title,
         description: ui.description || "",
@@ -84,11 +141,16 @@ async function fetchActivities(locale: Locale) {
           description: ui.membership?.description || "",
           joinCta: ui.membership?.joinCta || "Become a member",
           imageAlt: ui.membership?.imageAlt || "",
-          image: mediaUrl(ui.membership?.image, activitiesMembershipImage),
+          image: await resolveMediaUrl(
+            payload,
+            ui.membership?.image as never,
+            activitiesMembershipImage,
+          ),
         },
       },
     };
-  } catch {
+  } catch (error) {
+    console.error("[cms] activities fetch failed", error);
     return null;
   }
 }
@@ -97,29 +159,23 @@ export async function getCmsActivities(locale: Locale) {
   const cached = unstable_cache(
     () => fetchActivities(locale),
     [`cms-activities-${locale}`],
-    { tags: ["cms"], revalidate: 60 },
+    { tags: ["cms"], revalidate: 10 },
   );
 
   const fromCms = await cached();
   const dictionary = await getDictionary(locale);
 
   if (fromCms) {
-    const items = fromCms.items.map((item) => ({
-      ...item,
-      tag: dictionary.activities.tags[item.tagKey] ?? item.tag,
-    }));
-    return {
-      ...fromCms,
-      items,
-      pairs: fromCms.pairs,
-    };
+    return fromCms;
   }
 
   return {
     items: staticItems.map((item) => ({
       ...item,
+      slug: item.id,
       title: dictionary.activities.items[item.titleKey],
       tag: dictionary.activities.tags[item.tagKey],
+      photos: [item.image],
     })),
     pairs: staticPairs,
     ui: {
@@ -131,4 +187,29 @@ export async function getCmsActivities(locale: Locale) {
       },
     },
   };
+}
+
+/** Flatten cover + album photos for the homepage parallax reel (shuffled). */
+export function collectActivityReelImages(
+  items: { title: string; image: string; photos: string[] }[],
+) {
+  const pool: { src: string; alt: string }[] = [];
+
+  for (const item of items) {
+    if (item.image) {
+      pool.push({ src: item.image, alt: item.title });
+    }
+    for (const photo of item.photos) {
+      pool.push({ src: photo, alt: item.title });
+    }
+  }
+
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = pool[i]!;
+    pool[i] = pool[j]!;
+    pool[j] = tmp;
+  }
+
+  return pool;
 }

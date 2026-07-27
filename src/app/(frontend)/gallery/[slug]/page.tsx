@@ -6,7 +6,6 @@ import {
   getCmsGalleryAlbum,
   getCmsGalleryAlbums,
   getCmsGalleryUi,
-  getCmsProgramsUi,
 } from "@/lib/cms";
 import { getLocale } from "@/lib/i18n/locale";
 
@@ -38,22 +37,16 @@ export default async function GalleryAlbumPage({
 }: GalleryAlbumPageProps) {
   const { slug } = await params;
   const locale = await getLocale();
-  const [album, copy, programsCopy] = await Promise.all([
+  const [album, copy] = await Promise.all([
     getCmsGalleryAlbum(locale, slug),
     getCmsGalleryUi(locale),
-    getCmsProgramsUi(locale),
   ]);
 
   if (!album) notFound();
 
   return (
     <main className="min-h-svh bg-brand-dark pb-[var(--content-bottom-pad)] text-white">
-      <GalleryAlbumView
-        album={album}
-        locale={locale}
-        copy={copy}
-        programsCopy={programsCopy}
-      />
+      <GalleryAlbumView album={album} locale={locale} copy={copy} />
     </main>
   );
 }

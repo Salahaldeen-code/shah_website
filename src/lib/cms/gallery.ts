@@ -3,12 +3,9 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 
 import type { Locale } from "@/config/i18n";
-import {
-  galleryAlbums as staticAlbums,
-  type GalleryAlbum,
-} from "@/config/gallery";
+import { galleryAlbums as staticAlbums } from "@/config/gallery";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { getPayloadClient, mediaUrl } from "@/lib/cms/client";
+import { getPayloadClient, resolveMediaUrl } from "@/lib/cms/client";
 
 export type CmsGalleryAlbum = {
   slug: string;
@@ -17,38 +14,73 @@ export type CmsGalleryAlbum = {
   description: string;
   date: string;
   venue: string;
-  categoryKey: GalleryAlbum["categoryKey"];
+  /** Display label from the related category (or fallback). */
+  categoryLabel: string;
   cover: string;
   photos: string[];
 };
 
-async function fetchAlbums(locale: Locale): Promise<CmsGalleryAlbum[] | null> {
+function categoryLabelFrom(category: unknown, fallback: string) {
+  if (category && typeof category === "object" && "title" in category) {
+    const title = (category as { title?: string }).title;
+    if (title) return title;
+  }
+  return fallback;
+}
+
+async function fetchActivityAlbums(
+  locale: Locale,
+): Promise<CmsGalleryAlbum[] | null> {
   try {
     const payload = await getPayloadClient();
     const result = await payload.find({
-      collection: "gallery-albums",
+      collection: "activities",
       locale,
-      depth: 1,
+      depth: 2,
       limit: 100,
       sort: "-date",
     });
 
     if (!result.docs.length) return null;
 
-    return result.docs.map((doc) => ({
-      slug: doc.slug,
-      title: doc.title,
-      summary: doc.summary || "",
-      description: doc.description || "",
-      date: typeof doc.date === "string" ? doc.date : new Date(doc.date).toISOString(),
-      venue: doc.venue || "",
-      categoryKey: (doc.category || "team") as GalleryAlbum["categoryKey"],
-      cover: mediaUrl(doc.cover, "/images/hero/image1.jpg"),
-      photos: (doc.photos || [])
-        .map((row) => mediaUrl(row.image, ""))
-        .filter(Boolean),
-    }));
-  } catch {
+    return Promise.all(
+      result.docs.map(async (doc) => {
+        const cover = await resolveMediaUrl(
+          payload,
+          doc.image as never,
+          "/images/hero/image1.jpg",
+        );
+        const photos = (
+          await Promise.all(
+            (doc.photos || []).map((row) =>
+              resolveMediaUrl(payload, row?.image as never, ""),
+            ),
+          )
+        ).filter(Boolean);
+
+        const albumPhotos = photos.length ? photos : [cover];
+
+        const dateValue = doc.date
+          ? typeof doc.date === "string"
+            ? doc.date
+            : new Date(doc.date).toISOString()
+          : new Date().toISOString();
+
+        return {
+          slug: doc.slug || String(doc.id),
+          title: doc.title,
+          summary: doc.summary || "",
+          description: doc.description || "",
+          date: dateValue,
+          venue: doc.venue || "",
+          categoryLabel: categoryLabelFrom(doc.category, "Activity"),
+          cover,
+          photos: albumPhotos,
+        };
+      }),
+    );
+  } catch (error) {
+    console.error("[cms] gallery/activities fetch failed", error);
     return null;
   }
 }
@@ -57,9 +89,9 @@ export async function getCmsGalleryAlbums(
   locale: Locale,
 ): Promise<CmsGalleryAlbum[]> {
   const cached = unstable_cache(
-    () => fetchAlbums(locale),
-    [`cms-gallery-${locale}`],
-    { tags: ["cms"], revalidate: 60 },
+    () => fetchActivityAlbums(locale),
+    [`cms-gallery-activities-${locale}`],
+    { tags: ["cms"], revalidate: 10 },
   );
 
   const fromCms = await cached();
@@ -75,7 +107,8 @@ export async function getCmsGalleryAlbums(
       description: copy?.description ?? "",
       date: album.date,
       venue: dictionary.programs.venues[album.venueKey],
-      categoryKey: album.categoryKey,
+      categoryLabel:
+        dictionary.programs.categories[album.categoryKey] ?? album.categoryKey,
       cover: album.cover,
       photos: [...album.photos],
     };

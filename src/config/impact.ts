@@ -7,7 +7,7 @@ export type ImpactImage = {
 export const impactImages = {
   background: {
     id: "impact-bg",
-    src: "/images/app/impact-triathlon.png",
+    src: "/images/app/MY.jpg",
     alt: "Athletes running and cycling at sunrise with water reflections",
   },
   floatLeft: {

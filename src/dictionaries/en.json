@@ -32,6 +32,9 @@
     "bottomText": "EVOLVE",
     "overlayText": "Push forward"
   },
+  "partners": {
+    "label": "Partners"
+  },
   "programs": {
     "title": "Upcoming programs",
     "subtitle": "Discover your next session across our hubs.",

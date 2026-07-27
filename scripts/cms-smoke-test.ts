@@ -64,9 +64,9 @@ async function main() {
 
   const collections = [
     "programs",
+    "categories",
     "activities",
     "committee-members",
-    "gallery-albums",
     "media",
   ];
 
@@ -101,9 +101,9 @@ async function main() {
     `total=${collectionDocs.activities?.totalDocs ?? 0}`,
   );
   ok(
-    "DATA gallery-albums has rows",
-    (collectionDocs["gallery-albums"]?.totalDocs ?? 0) > 0,
-    `total=${collectionDocs["gallery-albums"]?.totalDocs ?? 0}`,
+    "DATA categories has rows",
+    (collectionDocs.categories?.totalDocs ?? 0) > 0,
+    `total=${collectionDocs.categories?.totalDocs ?? 0}`,
   );
   ok(
     "DATA committee-members has rows",
@@ -268,15 +268,15 @@ async function main() {
     ok("WIRE /gallery ↔ Gallery UI title", p.has, p.has ? "found" : "missing");
   }
 
-  const albumTitle = collectionDocs["gallery-albums"]?.docs?.find(
+  const activityTitle = collectionDocs.activities?.docs?.find(
     (d) => typeof d.title === "string" && !String(d.title).includes("&"),
   )?.title;
-  if (typeof albumTitle === "string" && albumTitle) {
-    const p = await pageIncludes("/gallery", albumTitle);
+  if (typeof activityTitle === "string" && activityTitle) {
+    const p = await pageIncludes("/gallery", activityTitle);
     ok(
-      "WIRE /gallery ↔ Album title",
+      "WIRE /gallery ↔ Activity album title",
       p.has,
-      p.has ? `found: ${albumTitle}` : "missing",
+      p.has ? `found: ${activityTitle}` : "missing",
     );
   }
 
@@ -294,9 +294,9 @@ async function main() {
   }
 
   ok(
-    "INFO home-hero preview-only",
+    "INFO home-hero editable",
     true,
-    "no editable site fields (carousel still in code)",
+    "title + slides editable at /admin/globals/home-hero",
   );
   ok(
     "INFO home-footer preview-only",

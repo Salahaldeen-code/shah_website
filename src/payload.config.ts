@@ -8,8 +8,8 @@ import { buildConfig } from "payload";
 import sharp from "sharp";
 
 import { Activities } from "./collections/Activities.ts";
+import { Categories } from "./collections/Categories.ts";
 import { CommitteeMembers } from "./collections/CommitteeMembers.ts";
-import { GalleryAlbums } from "./collections/GalleryAlbums.ts";
 import { Media } from "./collections/Media.ts";
 import { Programs } from "./collections/Programs.ts";
 import { Users } from "./collections/Users.ts";
@@ -58,9 +58,9 @@ const editBesideSave =
 
 const collections = [
   Programs,
+  Categories,
   Activities,
   CommitteeMembers,
-  GalleryAlbums,
   Media,
   Users,
 ].map((collection) => ({

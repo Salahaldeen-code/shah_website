@@ -20,6 +20,7 @@ export const navEntityOrder: Record<string, number> = {
   "programs-ui": 50,
   programs: 60,
   "home-activities": 70,
+  categories: 75,
   activities: 80,
   "home-footer": 90,
 
@@ -29,7 +30,6 @@ export const navEntityOrder: Record<string, number> = {
 
   // Gallery
   "gallery-ui": 10,
-  "gallery-albums": 20,
 
   // Contact
   "contact-page": 10,

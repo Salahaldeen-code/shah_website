@@ -502,14 +502,197 @@ body {
   }
 }
 
+/* Legacy CSS-driven track (unused when JS-synced shutter is active). */
 .shutter-marquee-track {
   --shutter-marquee-duration: 16s;
   animation: shutter-marquee var(--shutter-marquee-duration) linear infinite;
 }
 
+/* Top + bottom bars share one --shutter-marquee-x so halves stay pixel-locked. */
+.shutter-marquee-track-synced {
+  transform: translate3d(var(--shutter-marquee-x, 0px), 0, 0);
+  will-change: transform;
+}
+
+/* Long-title phrase polish — lightweight, no per-letter work */
+.shutter-phrase-text {
+  color: #111;
+  text-shadow:
+    0 1px 0 rgb(255 255 255 / 0.4),
+    0 -1px 0 rgb(0 0 0 / 0.14),
+    0 0 18px rgb(0 0 0 / 0.06);
+}
+
+.shutter-phrase-chip--live .shutter-phrase-text {
+  background-image: linear-gradient(
+    105deg,
+    #111 0%,
+    #111 38%,
+    #4a4a4a 48%,
+    #1a1a1a 52%,
+    #111 62%,
+    #111 100%
+  );
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 0 rgb(255 255 255 / 0.35))
+    drop-shadow(0 -1px 0 rgb(0 0 0 / 0.12));
+  animation: shutter-phrase-sheen 6.5s ease-in-out infinite;
+}
+
+.shutter-phrase-diamond {
+  width: 1.4em;
+  font-size: 0.45em;
+  letter-spacing: 0;
+  word-spacing: 0;
+  line-height: 1;
+  color: #111;
+  opacity: 0.32;
+}
+
+.shutter-phrase-chip--live .shutter-phrase-diamond {
+  animation: shutter-phrase-diamond 2.8s ease-in-out infinite;
+}
+
+.shutter-phrase-strip--live {
+  animation: shutter-phrase-breathe 5s ease-in-out infinite;
+}
+
+@keyframes shutter-phrase-sheen {
+  0%,
+  100% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shutter-phrase-diamond {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.18) rotate(45deg);
+  }
+}
+
+@keyframes shutter-phrase-breathe {
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shutter-marquee-track {
     animation: none;
+  }
+
+  .shutter-marquee-track-synced {
+    transform: none;
+  }
+
+  .shutter-phrase-chip--live .shutter-phrase-text,
+  .shutter-phrase-chip--live .shutter-phrase-diamond,
+  .shutter-phrase-strip--live {
+    animation: none;
+  }
+
+  .shutter-phrase-chip--live .shutter-phrase-text {
+    background: none;
+    color: #111;
+    -webkit-text-fill-color: #111;
+    filter: none;
+    text-shadow:
+      0 1px 0 rgb(255 255 255 / 0.4),
+      0 -1px 0 rgb(0 0 0 / 0.14);
+  }
+}
+
+/* Partners logo marquee (under hero) */
+@keyframes partners-marquee-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.partners-section {
+  background-image:
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      rgb(250 200 20 / 0.06),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #0a0a0a 0%, #101010 100%);
+}
+
+.partners-marquee-viewport {
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+.partners-marquee-track {
+  --partners-marquee-duration: 42s;
+}
+
+.partners-marquee-left {
+  animation: partners-marquee-left var(--partners-marquee-duration) linear
+    infinite;
+}
+
+.partners-marquee-stack:hover .partners-marquee-left {
+  animation-play-state: paused;
+}
+
+.partners-logo-tile {
+  opacity: 0.88;
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease,
+    filter 220ms ease;
+  filter: saturate(0.95) brightness(0.96);
+}
+
+.partners-logo-link:hover .partners-logo-tile,
+.partners-logo-tile:hover {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.04);
+  filter: saturate(1.05) brightness(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partners-marquee-left {
+    animation: none;
+  }
+
+  .partners-logo-tile {
+    transition: none;
   }
 }
 

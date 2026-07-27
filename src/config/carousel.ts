@@ -57,12 +57,73 @@ export const heroSlides: HeroSlide[] = [
   },
 ];
 
-/** Each progress line maps to two slides: [first, second]. */
-export const heroPairs: readonly [number, number][] = [
-  [0, 1],
-  [2, 3],
-  [4, 5],
-] as const;
+/**
+ * Each admin slide → one progress indicator.
+ * Cycle: still image first, then video (uploaded preferred over YouTube) if set.
+ */
+export function buildHeroSlideCycles(slides: readonly HeroSlide[]): {
+  slides: HeroSlide[];
+  pairs: [number, number][];
+  labels: string[];
+} {
+  const expanded: HeroSlide[] = [];
+  const pairs: [number, number][] = [];
+  const labels: string[] = [];
+
+  for (const slide of slides) {
+    const hasUploadedVideo = Boolean(slide.video);
+    const hasYoutube = Boolean(slide.youtubeId);
+    const hasVideo = hasUploadedVideo || hasYoutube;
+
+    const imageOnly: HeroSlide = {
+      id: `${slide.id}-image`,
+      src: slide.src,
+      alt: slide.alt,
+    };
+
+    const a = expanded.length;
+    expanded.push(imageOnly);
+
+    if (hasVideo) {
+      const videoSlide: HeroSlide = {
+        id: `${slide.id}-video`,
+        src: slide.src,
+        alt: slide.alt,
+        ...(hasUploadedVideo
+          ? { video: slide.video }
+          : { youtubeId: slide.youtubeId }),
+      };
+      const b = expanded.length;
+      expanded.push(videoSlide);
+      pairs.push([a, b]);
+    } else {
+      // No video — full shutter cycle stays on the still
+      const b = expanded.length;
+      expanded.push({ ...imageOnly, id: `${slide.id}-image-b` });
+      pairs.push([a, b]);
+    }
+
+    labels.push(slide.alt);
+  }
+
+  return { slides: expanded, pairs, labels };
+}
+
+/** @deprecated Prefer buildHeroSlideCycles — kept for static fallback pair helpers. */
+export function buildHeroPairs(slideCount: number): [number, number][] {
+  return buildHeroSlideCycles(
+    Array.from({ length: slideCount }, (_, i) => ({
+      id: `placeholder-${i}`,
+      src: "",
+      alt: `Slide ${i + 1}`,
+    })),
+  ).pairs;
+}
+
+/** Each progress line maps to one content slide (image → video within the cycle). */
+export const heroPairs: readonly [number, number][] = buildHeroSlideCycles(
+  heroSlides,
+).pairs;
 
 /**
  * Continuous pair timeline (progress never pauses).
@@ -70,7 +131,7 @@ export const heroPairs: readonly [number, number][] = [
  */
 export const heroCarouselConfig = {
   /** Uninterrupted fill duration for one progress line. */
-  pairCycleMs: 16000,
+  pairCycleMs: 10000,
   /** Midpoint where bars close (~50%). Same as phaseEnds.openHold. */
   midpoint: 0.5,
   phaseEnds: {
@@ -95,13 +156,13 @@ export const shutterBarHeightRatio = {
 export const heroShutterConfig = {
   /** Shared word shown in both bars (split across the seam). */
   marqueeText: "PSR",
-  /** How many times to repeat the word in the display string. */
+  /** How many times to repeat a short brand mark in one marquee unit. */
   marqueeRepeat: 8,
-  /** Full horizontal marquee loop duration in seconds (lower = faster). */
+  /** Full horizontal marquee loop duration in seconds (short titles). */
   marqueeDurationSec: 16,
-  /** Glyph height as multiplier of --shutter-bar-height. */
+  /** Glyph height as multiplier of --shutter-bar-height (short titles). */
   fontSizeScale: 1.55,
-  /** Letter spacing in em. */
+  /** Letter spacing in em (short titles). */
   letterSpacingEm: 0.08,
   /** Duration of one letter's vertical roll in ms. */
   letterDurationMs: 900,
@@ -115,6 +176,89 @@ export const heroShutterConfig = {
   squashScaleX: 1.35,
   accentText: "",
 } as const;
+
+/** Adaptive shutter typography / motion for short marks vs long phrases. */
+export type ShutterTitleLayout = {
+  mode: "mark" | "phrase";
+  fontSizeScale: number;
+  letterSpacingEm: number;
+  wordSpacingEm: number;
+  /** Copies of the title inside one seamless marquee half. */
+  repeat: number;
+  marqueeDurationSec: number;
+  useLetterRoll: boolean;
+  /** Delay between consecutive letter rolls in ms. */
+  letterStaggerMs: number;
+  /** Duration of one letter's vertical roll in ms. */
+  letterDurationMs: number;
+  /** Pause after the last letter before the sequence restarts in ms. */
+  sequencePauseMs: number;
+  /** Horizontal squash at flip edges (1 = none). */
+  squashScaleX: number;
+  /** Vertical squash at flip edges (1 = none). */
+  squashScaleY: number;
+  /** Separator between repeated phrases (phrase mode). */
+  separator: string;
+};
+
+export function resolveShutterTitleLayout(rawTitle: string): ShutterTitleLayout {
+  const title = rawTitle.trim() || heroShutterConfig.marqueeText;
+  const length = title.length;
+
+  // Compact brand marks (e.g. PSR) — oversized glyphs + punchy letter rolls
+  if (length <= 8) {
+    return {
+      mode: "mark",
+      fontSizeScale: heroShutterConfig.fontSizeScale,
+      letterSpacingEm: heroShutterConfig.letterSpacingEm,
+      wordSpacingEm: 0,
+      repeat: heroShutterConfig.marqueeRepeat,
+      marqueeDurationSec: heroShutterConfig.marqueeDurationSec,
+      useLetterRoll: true,
+      letterStaggerMs: heroShutterConfig.letterStaggerMs,
+      letterDurationMs: heroShutterConfig.letterDurationMs,
+      sequencePauseMs: heroShutterConfig.sequencePauseMs,
+      squashScaleX: heroShutterConfig.squashScaleX,
+      squashScaleY: heroShutterConfig.squashScaleY,
+      separator: "",
+    };
+  }
+
+  // Medium / long phrases — marquee only (per-letter flips are too heavy while scrolling)
+  if (length <= 24) {
+    return {
+      mode: "phrase",
+      fontSizeScale: 0.72,
+      letterSpacingEm: 0.06,
+      wordSpacingEm: 0.12,
+      repeat: 1,
+      marqueeDurationSec: 28,
+      useLetterRoll: false,
+      letterStaggerMs: 140,
+      letterDurationMs: 920,
+      sequencePauseMs: 1100,
+      squashScaleX: 1,
+      squashScaleY: 1,
+      separator: "  ·  ",
+    };
+  }
+
+  return {
+    mode: "phrase",
+    fontSizeScale: length > 48 ? 0.4 : 0.48,
+    letterSpacingEm: 0.035,
+    wordSpacingEm: 0.16,
+    repeat: 1,
+    marqueeDurationSec: 36,
+    useLetterRoll: false,
+    letterStaggerMs: 110,
+    letterDurationMs: 980,
+    sequencePauseMs: 1400,
+    squashScaleX: 1,
+    squashScaleY: 1,
+    separator: "  ·  ",
+  };
+}
 
 export type TimelinePhase =
   | "opening"

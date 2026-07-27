@@ -77,6 +77,11 @@ export function ProgramDetailModal({
       ? program.details
       : (copy.details?.[(program as ProgramRecord).titleKey] ?? copy.subtitle);
 
+  const photoPool =
+    "photos" in program && Array.isArray((program as CmsProgram).photos)
+      ? (program as CmsProgram).photos
+      : [program.image];
+
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(frame);
@@ -170,6 +175,30 @@ export function ProgramDetailModal({
           <p className="mt-4 text-sm leading-relaxed text-white/65">
             {description}
           </p>
+
+          {photoPool.length ? (
+            <div className="mt-6">
+              <p className="text-[0.65rem] tracking-[0.16em] text-white/55 uppercase">
+                Photos
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {photoPool.slice(0, 6).map((src, idx) => (
+                  <div
+                    key={`${src}-${idx}`}
+                    className="relative aspect-square overflow-hidden rounded-sm bg-brand-surface"
+                  >
+                    <Image
+                      src={src}
+                      alt={title}
+                      fill
+                      sizes="120px"
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
             <Link
