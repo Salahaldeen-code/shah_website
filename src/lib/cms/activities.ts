@@ -67,9 +67,9 @@ async function fetchActivities(locale: Locale) {
           doc.video as never,
           "/videos/activities/outdoor.mp4",
         );
-        const photos = (
+        const albumPhotos = (
           await Promise.all(
-            (doc.photos || []).map((row) =>
+            (Array.isArray(doc.photos) ? doc.photos : []).map((row) =>
               resolveMediaUrl(payload, row?.image as never, ""),
             ),
           )
@@ -85,7 +85,8 @@ async function fetchActivities(locale: Locale) {
           video,
           title: doc.title,
           tag: tagLabel,
-          photos,
+          // Fall back to cover so the reel always has at least one image.
+          photos: albumPhotos.length ? albumPhotos : [image],
         };
       }),
     );
@@ -191,16 +192,22 @@ export async function getCmsActivities(locale: Locale) {
 
 /** Flatten cover + album photos for the homepage parallax reel (shuffled). */
 export function collectActivityReelImages(
-  items: { title: string; image: string; photos: string[] }[],
+  items: { title: string; image: string; photos?: string[] | null }[],
 ) {
   const pool: { src: string; alt: string }[] = [];
+  const seen = new Set<string>();
+
+  const push = (src: string | undefined, alt: string) => {
+    if (!src || seen.has(src)) return;
+    seen.add(src);
+    pool.push({ src, alt });
+  };
 
   for (const item of items) {
-    if (item.image) {
-      pool.push({ src: item.image, alt: item.title });
-    }
-    for (const photo of item.photos) {
-      pool.push({ src: photo, alt: item.title });
+    push(item.image, item.title);
+    const photos = Array.isArray(item.photos) ? item.photos : [];
+    for (const photo of photos) {
+      push(photo, item.title);
     }
   }
 

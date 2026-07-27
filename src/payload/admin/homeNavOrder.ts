@@ -5,6 +5,7 @@ export const NAV_GROUP_ORDER = [
   "About Us",
   "Gallery",
   "Contact",
+  "Membership",
   "Site",
 ] as const;
 
@@ -33,6 +34,9 @@ export const navEntityOrder: Record<string, number> = {
 
   // Contact
   "contact-page": 10,
+
+  // Membership
+  "membership-registrations": 10,
 
   // Site
   "site-settings": 10,

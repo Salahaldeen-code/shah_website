@@ -13,12 +13,14 @@ import {
   membershipSports,
   membershipUpload,
 } from "@/config/membership";
+import { submitMembershipRegistration } from "@/lib/membership/actions";
 
 type FieldErrors = Partial<
   Record<
     | "fullName"
     | "ic"
     | "phone"
+    | "email"
     | "addressLine"
     | "address"
     | "sport"
@@ -60,6 +62,7 @@ export function MembershipRegistrationForm() {
   const [ic2, setIc2] = useState("");
   const [ic3, setIc3] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [address, setAddress] = useState("");
   const [sport, setSport] = useState("");
@@ -68,6 +71,7 @@ export function MembershipRegistrationForm() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function clearPhoto() {
     setPhotoName("");
@@ -120,6 +124,9 @@ export function MembershipRegistrationForm() {
     if (!/^\d{8,11}$/.test(phone.replace(/\D/g, ""))) {
       next.phone = "Enter a valid WhatsApp number";
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      next.email = "Enter a valid email address";
+    }
     if (!addressLine.trim()) next.addressLine = "Required";
     if (!address.trim()) next.address = "Required";
     if (!sport) next.sport = "Select a sport";
@@ -133,9 +140,32 @@ export function MembershipRegistrationForm() {
     if (Object.keys(next).length > 0) return;
 
     setSubmitting(true);
-    // UI-only for now — no backend wired yet
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
+    setSubmitError(null);
+
+    const formData = new FormData();
+    formData.set("fullName", fullName.trim());
+    formData.set("ic1", ic1);
+    formData.set("ic2", ic2);
+    formData.set("ic3", ic3);
+    formData.set("phone", phone);
+    formData.set("email", email.trim());
+    formData.set("addressLine", addressLine.trim());
+    formData.set("address", address.trim());
+    formData.set("sport", sport);
+
+    const photoFile = fileInputRef.current?.files?.[0];
+    if (photoFile) {
+      formData.set("photo", photoFile);
+    }
+
+    const result = await submitMembershipRegistration(formData);
     setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError(result.error);
+      return;
+    }
+
     setSubmitted(true);
   }
 
@@ -280,6 +310,27 @@ export function MembershipRegistrationForm() {
 
         <div className="md:col-span-2">
           <BilingualLabel
+            htmlFor={`${formId}-email`}
+            en="Email Address"
+            ms="Alamat E-mel"
+          />
+          <input
+            id={`${formId}-email`}
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={fieldClass}
+          />
+          {errors.email ? (
+            <p className="mt-1.5 text-xs text-brand-red">{errors.email}</p>
+          ) : null}
+        </div>
+
+        <div className="md:col-span-2">
+          <BilingualLabel
             htmlFor={`${formId}-address-line`}
             en="Address in Bandar Putra Permai"
             ms="Alamat di Bandar Putra Permai"
@@ -385,6 +436,9 @@ export function MembershipRegistrationForm() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3">
+        {submitError ? (
+          <p className="max-w-md text-center text-sm text-brand-red">{submitError}</p>
+        ) : null}
         <button
           type="submit"
           disabled={submitting}

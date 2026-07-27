@@ -71,6 +71,7 @@ export interface Config {
     categories: Category;
     activities: Activity;
     'committee-members': CommitteeMember;
+    'membership-registrations': MembershipRegistration;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -84,6 +85,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     activities: ActivitiesSelect<false> | ActivitiesSelect<true>;
     'committee-members': CommitteeMembersSelect<false> | CommitteeMembersSelect<true>;
+    'membership-registrations': MembershipRegistrationsSelect<false> | MembershipRegistrationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -290,6 +292,31 @@ export interface CommitteeMember {
   createdAt: string;
 }
 /**
+ * New member sign-ups from /membership — filter by sport to see registrants per activity
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-registrations".
+ */
+export interface MembershipRegistration {
+  id: number;
+  fullName: string;
+  email: string;
+  /**
+   * Format: XXXXXX-XX-XXXX
+   */
+  icNumber: string;
+  phone: string;
+  /**
+   * Main sport preference from the registration form
+   */
+  sport: 'football' | 'archery' | 'tableTennis' | 'badminton' | 'others';
+  photo?: (number | null) | Media;
+  addressLine: string;
+  address: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * People who can sign in to the CMS
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -355,6 +382,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'committee-members';
         value: number | CommitteeMember;
+      } | null)
+    | ({
+        relationTo: 'membership-registrations';
+        value: number | MembershipRegistration;
       } | null)
     | ({
         relationTo: 'media';
@@ -485,6 +516,22 @@ export interface CommitteeMembersSelect<T extends boolean = true> {
         instagram?: T;
         behance?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-registrations_select".
+ */
+export interface MembershipRegistrationsSelect<T extends boolean = true> {
+  fullName?: T;
+  email?: T;
+  icNumber?: T;
+  phone?: T;
+  sport?: T;
+  photo?: T;
+  addressLine?: T;
+  address?: T;
   updatedAt?: T;
   createdAt?: T;
 }
