@@ -42,8 +42,14 @@ export function MembershipRowActions(props: DefaultCellComponentProps) {
         throw new Error(`Could not load registration (${res.status})`);
       }
 
-      const data = (await res.json()) as Record<string, unknown> | { doc: Record<string, unknown> };
-      const doc = "doc" in data && data.doc ? data.doc : data;
+      const data = (await res.json()) as
+        | Record<string, unknown>
+        | { doc: Record<string, unknown> };
+      const doc = (
+        "doc" in data && data.doc && typeof data.doc === "object"
+          ? data.doc
+          : data
+      ) as Record<string, unknown>;
       setViewRow(doc);
       setViewOpen(true);
     } catch (error) {

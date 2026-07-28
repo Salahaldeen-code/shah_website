@@ -416,7 +416,10 @@ export function ActivitiesStage({
 
   const pairA = stagePairs[0] ?? {
     id: "pair-a",
-    items: [stageItems[0], stageItems[1]].filter(Boolean) as ActivityPair["items"],
+    items: [
+      stageItems[0] ?? stageItems[1] ?? activityItems[0],
+      stageItems[1] ?? stageItems[0] ?? activityItems[1] ?? activityItems[0],
+    ] as ActivityPair["items"],
   };
   const pairB = stagePairs[1] ?? stagePairs[0] ?? pairA;
   const featured =
