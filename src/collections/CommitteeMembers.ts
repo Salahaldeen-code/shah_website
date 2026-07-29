@@ -13,7 +13,7 @@ export const CommitteeMembers: CollectionConfig = {
     group: "About Us",
     description: "About page → organization chart",
     useAsTitle: "name",
-    defaultColumns: ["name", "role", "updatedAt"],
+    defaultColumns: ["name", "role", "order", "updatedAt"],
   },
   access: {
     read: () => true,
@@ -46,6 +46,19 @@ export const CommitteeMembers: CollectionConfig = {
       defaultValue: 0,
       admin: {
         position: "sidebar",
+        description:
+          "Lower numbers appear first on the About page. Use the chart below — click a number or drag to swap.",
+      },
+    },
+    {
+      name: "orderChart",
+      type: "ui",
+      admin: {
+        position: "sidebar",
+        components: {
+          Field:
+            "@/payload/components/CommitteeOrderPreview#CommitteeOrderPreview",
+        },
       },
     },
     {
