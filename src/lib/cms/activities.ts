@@ -218,5 +218,6 @@ export function collectActivityReelImages(
     pool[j] = tmp;
   }
 
-  return pool;
+  // Homepage reel only needs a short loop — full albums live on /gallery
+  return pool.slice(0, 12);
 }
