@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const HomeEditorial: GlobalConfig = {
@@ -11,7 +7,7 @@ export const HomeEditorial: GlobalConfig = {
   label: "Editorial Showcase",
   admin: {
     group: "Home",
-    description: "Home → TRAIN / COMPETE / EVOLVE stepped block",
+    description: "Home → TRAIN / COMPETE / EVOLVE stepped block.",
   },
   access: {
     read: () => true,
@@ -20,11 +16,6 @@ export const HomeEditorial: GlobalConfig = {
     afterChange: [revalidateGlobals],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.editorialShowcase,
-      "Editorial stepped showcase",
-      "Yellow stepped blocks and script overlay. Switch locale to edit Malay.",
-    ),
     {
       type: "tabs",
       tabs: [

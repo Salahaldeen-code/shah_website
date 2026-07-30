@@ -1,11 +1,14 @@
 import { Logout } from "@payloadcms/ui";
 import { RenderServerComponent } from "@payloadcms/ui/elements/RenderServerComponent";
-import { EntityType, groupNavItems, type EntityToGroup } from "@payloadcms/ui/shared";
+import {
+  EntityType,
+  groupNavItems,
+  type EntityToGroup,
+} from "@payloadcms/ui/shared";
 import { NavHamburger, NavWrapper } from "@payloadcms/next/client";
-import type { PayloadRequest, ServerProps, NavPreferences } from "payload";
+import type { NavPreferences, PayloadRequest, ServerProps } from "payload";
 import React from "react";
 
-import { getNavPrefs } from "../admin/getNavPrefs.ts";
 import { SettingsMenuButton } from "./SettingsMenuButton.tsx";
 import { SortedDefaultNavClient } from "./SortedDefaultNavClient.tsx";
 
@@ -15,6 +18,9 @@ type NavProps = {
   req?: PayloadRequest;
 } & ServerProps;
 
+/** Skip payload-preferences DB hit on every admin navigation. */
+const defaultNavPreferences = { groups: {} } as NavPreferences;
+
 export const SortedNav: React.FC<NavProps> = async (props) => {
   const {
     documentSubViewType,
@@ -23,7 +29,6 @@ export const SortedNav: React.FC<NavProps> = async (props) => {
     params,
     payload,
     permissions,
-    req,
     searchParams,
     user,
     viewType,
@@ -73,8 +78,6 @@ export const SortedNav: React.FC<NavProps> = async (props) => {
   ];
 
   const groups = groupNavItems(entities, permissions, i18n);
-
-  const navPreferences = (req ? await getNavPrefs(req) : null) as NavPreferences;
 
   const serverProps = {
     i18n,
@@ -147,7 +150,7 @@ export const SortedNav: React.FC<NavProps> = async (props) => {
         {RenderedBeforeNavLinks}
         <SortedDefaultNavClient
           groups={groups}
-          navPreferences={navPreferences}
+          navPreferences={defaultNavPreferences}
         />
         {RenderedAfterNavLinks}
         <div className={`${baseClass}__controls`}>

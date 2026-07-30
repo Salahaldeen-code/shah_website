@@ -1,10 +1,6 @@
 import type { CollectionConfig } from "payload";
 
 import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
-import {
   revalidateContent,
   revalidateContentDelete,
 } from "../hooks/revalidateContent.ts";
@@ -21,7 +17,7 @@ export const Activities: CollectionConfig = {
     description:
       "Activities with category, media, and photo album — used on home + /gallery",
     useAsTitle: "title",
-    defaultColumns: ["image", "title", "category", "slot", "actions"],
+    defaultColumns: ["title", "category", "slot", "actions"],
     listSearchableFields: ["title", "slug"],
   },
   access: {
@@ -32,11 +28,6 @@ export const Activities: CollectionConfig = {
     afterDelete: [revalidateContentDelete],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.activitiesCards,
-      "Activity cards + gallery albums",
-      "Homepage Activities stage uses cover image/video + layout slots. Gallery page lists these activities; attached photos are the album.",
-    ),
     {
       name: "actions",
       type: "ui",

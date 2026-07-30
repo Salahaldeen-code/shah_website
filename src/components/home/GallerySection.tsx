@@ -1,4 +1,4 @@
-import ThreeDParallaxUnfurlingGallery from "@/components/ui/3d-parallax-unfurling-gallery";
+import { DynamicGallery } from "@/components/home/HomeDynamicSections";
 import {
   collectActivityReelImages,
   getCmsActivities,
@@ -23,7 +23,5 @@ export async function GallerySection() {
     subtitle: galleryUi.subtitle || dictionary.gallery.reel.subtitle,
   };
 
-  return (
-    <ThreeDParallaxUnfurlingGallery copy={reelCopy} images={images} />
-  );
+  return <DynamicGallery copy={reelCopy} images={images} />;
 }

@@ -6,6 +6,77 @@
   --psr-admin-blue: #004baa;
 }
 
+/* Login + sidebar branding */
+.psr-admin-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.psr-admin-brand--login {
+  gap: 0.65rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.psr-admin-brand--nav {
+  gap: 0.45rem;
+  padding: 0.35rem 0.5rem 0.75rem;
+}
+
+.psr-admin-brand__logo,
+.psr-admin-brand__icon {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.psr-admin-brand__logo {
+  max-height: 5.5rem;
+}
+
+.psr-admin-brand__icon {
+  max-height: 3.25rem;
+}
+
+.psr-admin-brand__name {
+  margin: 0;
+  max-width: 16rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  color: var(--theme-elevation-1000);
+}
+
+.psr-admin-brand__tagline {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--psr-admin-blue);
+}
+
+.psr-admin-brand__nav-name {
+  display: block;
+  max-width: 11rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-800);
+}
+
+/* Hide default Payload wordmark if any wrapper still renders it */
+.template-default .graphic-logo,
+.template-default .graphic-icon svg {
+  display: none !important;
+}
+
 /* Section headers — clear labeled boxes */
 .nav-group {
   margin-bottom: 0.75rem !important;

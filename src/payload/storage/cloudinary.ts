@@ -8,13 +8,13 @@ import { cloudStoragePlugin } from "@payloadcms/plugin-cloud-storage";
 import { v2 as cloudinary } from "cloudinary";
 import type { Plugin, UploadCollectionSlug } from "payload";
 
-export type CloudinaryCredentials = {
-  cloudName: string;
-  apiKey: string;
-  apiSecret: string;
-  /** Asset folder every upload is nested under, e.g. "psr". */
-  folder: string;
-};
+import {
+  readCloudinaryCredentials,
+  type CloudinaryCredentials,
+} from "./credentials.ts";
+
+export type { CloudinaryCredentials };
+export { readCloudinaryCredentials };
 
 export type CloudinaryResourceType = "image" | "video" | "raw";
 
@@ -71,9 +71,11 @@ export function publicIdFor(filename: string, folder: string): string {
 export function cloudinaryUrlFor(
   filename: string,
   credentials: CloudinaryCredentials,
+  options?: { width?: number },
 ): string {
   const resourceType = resourceTypeFor(filename);
   const ext = extensionOf(filename);
+  const width = options?.width;
 
   return cloudinary.url(publicIdFor(filename, credentials.folder), {
     cloud_name: credentials.cloudName,
@@ -82,25 +84,17 @@ export function cloudinaryUrlFor(
     // SVG must keep its own format; raster images are served as whatever the
     // browser accepts, at Cloudinary's automatic quality.
     ...(resourceType === "image" && ext !== "svg"
-      ? { transformation: [{ fetch_format: "auto", quality: "auto" }] }
-      : {}),
+      ? {
+          transformation: [
+            ...(width ? [{ width, crop: "limit" as const }] : []),
+            { fetch_format: "auto", quality: "auto" },
+          ],
+        }
+      : resourceType === "video" && width
+        ? { transformation: [{ width, crop: "limit" as const }] }
+        : {}),
     ...(resourceType === "raw" ? {} : { format: ext || undefined }),
   });
-}
-
-export function readCloudinaryCredentials(): CloudinaryCredentials | null {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
-
-  if (!cloudName || !apiKey || !apiSecret) return null;
-
-  return {
-    cloudName,
-    apiKey,
-    apiSecret,
-    folder: process.env.CLOUDINARY_FOLDER || "psr",
-  };
 }
 
 export function configureCloudinary(credentials: CloudinaryCredentials): void {

@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const ProgramsUi: GlobalConfig = {
@@ -11,7 +7,7 @@ export const ProgramsUi: GlobalConfig = {
   label: "Programs UI",
   admin: {
     group: "Home",
-    description: "Home → Programs table titles, filters, and buttons",
+    description: "Home → Programs table titles, filters, and buttons.",
   },
   access: {
     read: () => true,
@@ -20,11 +16,6 @@ export const ProgramsUi: GlobalConfig = {
     afterChange: [revalidateGlobals],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.programs,
-      "Upcoming programs table",
-      "Headings, filters, and button labels for the programs overlay.",
-    ),
     {
       type: "tabs",
       tabs: [

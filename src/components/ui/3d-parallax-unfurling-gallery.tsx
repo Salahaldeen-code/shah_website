@@ -73,6 +73,7 @@ function ImageCard({ src, alt, onLoad }: ImageCardProps) {
         src={src}
         alt={alt}
         loading="lazy"
+        decoding="async"
         onLoad={onLoad}
         className="h-full w-full object-cover opacity-85 transition duration-500 ease-out group-hover:scale-[1.04] group-hover:opacity-100"
       />
@@ -136,7 +137,7 @@ export default function ThreeDParallaxUnfurlingGallery({
         base.length > 0
           ? base
           : sourceImages.slice(0, Math.max(1, sourceImages.length));
-      return [...filled, ...filled, ...filled];
+      return [...filled, ...filled];
     });
 
     return {

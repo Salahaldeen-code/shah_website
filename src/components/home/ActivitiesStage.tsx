@@ -112,6 +112,7 @@ function ActivityPanel({
 }: ActivityPanelProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [videoArmed, setVideoArmed] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
 
   const stopPreview = () => {
@@ -123,9 +124,14 @@ function ActivityPanel({
   };
 
   const startPreview = () => {
-    if (reducedMotion) return;
+    if (reducedMotion || !item.video) return;
+    setVideoArmed(true);
     const video = videoRef.current;
     if (!video) return;
+    if (!video.getAttribute("src")) {
+      video.src = item.video;
+      video.load();
+    }
     const play = video.play();
     if (play) {
       play.then(() => setPlaying(true)).catch(() => setPlaying(false));
@@ -140,6 +146,16 @@ function ActivityPanel({
     video.currentTime = 0;
     setPlaying(false);
   }, [reducedMotion]);
+
+  useEffect(() => {
+    if (!videoArmed || reducedMotion) return;
+    const video = videoRef.current;
+    if (!video || !item.video) return;
+    if (!video.getAttribute("src")) {
+      video.src = item.video;
+      video.load();
+    }
+  }, [videoArmed, item.video, reducedMotion]);
 
   return (
     <article className={`activities-panel ${className}`} style={style}>
@@ -166,19 +182,20 @@ function ActivityPanel({
               playing ? "opacity-0" : "opacity-100"
             }`}
           />
-          <video
-            ref={videoRef}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-              playing ? "opacity-100" : "opacity-0"
-            }`}
-            src={item.video}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            aria-hidden="true"
-            tabIndex={-1}
-          />
+          {!reducedMotion ? (
+            <video
+              ref={videoRef}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+                playing ? "opacity-100" : "opacity-0"
+              }`}
+              muted
+              loop
+              playsInline
+              preload="none"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          ) : null}
         </div>
         <div
           className={`flex items-center gap-2 bg-black ${

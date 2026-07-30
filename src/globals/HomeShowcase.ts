@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const HomeShowcase: GlobalConfig = {
@@ -21,11 +17,6 @@ export const HomeShowcase: GlobalConfig = {
     afterChange: [revalidateGlobals],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.activeLifeIntro,
-      "Active Life collage — title phase",
-      "Brand block copy. Side/grid photos are pulled automatically from the Categories collection.",
-    ),
     {
       type: "tabs",
       tabs: [

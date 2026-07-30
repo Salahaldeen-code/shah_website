@@ -281,6 +281,9 @@ export interface CommitteeMember {
   name: string;
   role: string;
   image: number | Media;
+  /**
+   * Lower numbers appear first on the About page. Use the chart below — click a number or drag to swap.
+   */
   order?: number | null;
   social?: {
     twitter?: string | null;
@@ -616,7 +619,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Top of homepage — shutter carousel, title text, and partners marquee
+ * Top of homepage — shutter carousel, title text, and partners marquee. Each slide = one progress indicator (image first, then video).
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-hero".
@@ -670,7 +673,7 @@ export interface HomeHero {
   createdAt?: string | null;
 }
 /**
- * Home → TRAIN / COMPETE / EVOLVE stepped block
+ * Home → TRAIN / COMPETE / EVOLVE stepped block.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-editorial".
@@ -715,7 +718,7 @@ export interface HomeShowcase {
   createdAt?: string | null;
 }
 /**
- * Home → Sports Strong / scroll impact visuals
+ * Home → Sports Strong / scroll impact visuals.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-impact".
@@ -733,7 +736,7 @@ export interface HomeImpact {
   createdAt?: string | null;
 }
 /**
- * Home → Programs table titles, filters, and buttons
+ * Home → Programs table titles, filters, and buttons.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "programs-ui".
@@ -759,7 +762,7 @@ export interface ProgramsUi {
   createdAt?: string | null;
 }
 /**
- * Home → Activities title, description, and Join the Movement
+ * Home → Activities title, description, and Join the Movement block.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-activities".
@@ -768,9 +771,9 @@ export interface HomeActivity {
   id: number;
   title: string;
   description?: string | null;
-  membership?: {
-    titleLine1?: string | null;
-    titleLine2?: string | null;
+  membership: {
+    titleLine1: string;
+    titleLine2: string;
     description?: string | null;
     joinCta?: string | null;
     imageAlt?: string | null;
@@ -780,7 +783,7 @@ export interface HomeActivity {
   createdAt?: string | null;
 }
 /**
- * Social circles and bottom legal bar (copy in code for now)
+ * Social circles and bottom legal bar. Social copy lives in src/config/socialFooter.ts; legal links in FooterBottom.tsx.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home-footer".

@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const HomeFooter: GlobalConfig = {
@@ -11,7 +7,8 @@ export const HomeFooter: GlobalConfig = {
   label: "Footer & Social",
   admin: {
     group: "Home",
-    description: "Social circles and bottom legal bar (copy in code for now)",
+    description:
+      "Social circles and bottom legal bar. Social copy lives in src/config/socialFooter.ts; legal links in FooterBottom.tsx.",
   },
   access: {
     read: () => true,
@@ -25,23 +22,11 @@ export const HomeFooter: GlobalConfig = {
       tabs: [
         {
           label: "Social channels",
-          fields: [
-            sectionPreviewField(
-              homePreviews.socialFooter,
-              "Social footer reel",
-              "Yellow social strip above the legal bar. Edit in src/config/socialFooter.ts.",
-            ),
-          ],
+          fields: [],
         },
         {
           label: "Legal bar",
-          fields: [
-            sectionPreviewField(
-              homePreviews.footerLegal,
-              "Footer legal links",
-              "Privacy, terms, and credits row. Edit in src/components/layout/social-footer/FooterBottom.tsx and related config.",
-            ),
-          ],
+          fields: [],
         },
       ],
     },

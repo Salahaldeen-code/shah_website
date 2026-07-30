@@ -214,7 +214,6 @@ export function ActiveLifeCollage({
                     alt={frame.alt}
                     fill
                     sizes="(max-width: 639px) 28vw, 16vw"
-                    priority
                     className="object-cover"
                   />
                 </div>

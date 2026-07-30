@@ -147,12 +147,11 @@ function preloadVideo(src: string) {
   video.load();
 }
 
-/** Decode every slide poster (and buffer local videos) before transitions need them. */
+/** Warm posters only — active/next videos are buffered by the pair-cycle effect. */
 function useHeroMediaWarmup(slides: readonly HeroSlide[]) {
   useEffect(() => {
     for (const slide of slides) {
       void preloadImage(slide.src);
-      if (slide.video) preloadVideo(slide.video);
     }
   }, [slides]);
 }

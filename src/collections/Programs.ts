@@ -1,10 +1,9 @@
 import type { CollectionConfig } from "payload";
 
 import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
-import { revalidateContent, revalidateContentDelete } from "../hooks/revalidateContent.ts";
+  revalidateContent,
+  revalidateContentDelete,
+} from "../hooks/revalidateContent.ts";
 
 
 export const Programs: CollectionConfig = {
@@ -18,7 +17,7 @@ export const Programs: CollectionConfig = {
     group: "Home",
     description: "Home → upcoming sessions in the programs table",
     useAsTitle: "title",
-    defaultColumns: ["image", "title", "category", "start", "actions"],
+    defaultColumns: ["title", "category", "start", "actions"],
     listSearchableFields: ["title"],
   },
   access: {
@@ -29,11 +28,6 @@ export const Programs: CollectionConfig = {
     afterDelete: [revalidateContentDelete],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.programs,
-      "Individual program rows in the table",
-      "Each row here is one session in the Upcoming Programs table. Drag rows to reorder. Use Edit / Delete on the right.",
-    ),
     {
       name: "actions",
       type: "ui",
@@ -116,12 +110,6 @@ export const Programs: CollectionConfig = {
               type: "upload",
               relationTo: "media",
               required: true,
-              displayPreview: true,
-              admin: {
-                components: {
-                  Cell: "@/payload/components/ListImageCell#ListImageCell",
-                },
-              },
             },
             {
               name: "video",

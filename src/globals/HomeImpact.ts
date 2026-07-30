@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const HomeImpact: GlobalConfig = {
@@ -11,7 +7,7 @@ export const HomeImpact: GlobalConfig = {
   label: "Impact Section",
   admin: {
     group: "Home",
-    description: "Home → Sports Strong / scroll impact visuals",
+    description: "Home → Sports Strong / scroll impact visuals.",
   },
   access: {
     read: () => true,
@@ -20,11 +16,6 @@ export const HomeImpact: GlobalConfig = {
     afterChange: [revalidateGlobals],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.impact,
-      "Impact section with floating photos",
-      "Yellow SPORTS / STRONG block and circular float images.",
-    ),
     {
       type: "tabs",
       tabs: [

@@ -10,7 +10,7 @@ import { PortfolioSection } from "@/components/home/PortfolioSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
 
 /** Keep homepage close to CMS edits (admin save also revalidates the `cms` tag). */
-export const revalidate = 10;
+export const revalidate = 60;
 
 export default function HomePage() {
   return (

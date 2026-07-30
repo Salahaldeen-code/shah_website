@@ -23,6 +23,9 @@ type ScrollImpactSectionProps = {
   locale: Locale;
 };
 
+/** Progress at which programs are fully docked — freeze updates past this. */
+const PROGRAMS_DOCK = 0.86;
+
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
 
@@ -92,6 +95,7 @@ export function ScrollImpactSection({
   // Reduced motion: photo + programs docked
   const raw = reducedMotion ? 1 : scrollProgress;
   const progress = smooth(raw);
+  const docked = raw >= PROGRAMS_DOCK;
 
   useEffect(() => {
     if (reducedMotion) return;
@@ -105,7 +109,13 @@ export function ScrollImpactSection({
       frame = 0;
       const rect = section.getBoundingClientRect();
       const total = Math.max(1, rect.height - window.innerHeight);
-      setScrollProgress(clamp(-rect.top / total));
+      const next = clamp(-rect.top / total);
+      setScrollProgress((prev) => {
+        // Freeze while programs stay docked — stops sticky-scroll re-paints
+        if (prev >= PROGRAMS_DOCK && next >= PROGRAMS_DOCK) return prev;
+        if (Math.abs(prev - next) < 0.004) return prev;
+        return next;
+      });
     };
 
     const onScroll = () => {
@@ -124,12 +134,13 @@ export function ScrollImpactSection({
     };
   }, [reducedMotion]);
 
-  // Timeline: open story → middle split reveal → programs (no closing shutters)
+  // Timeline: open story → middle split reveal → programs (dock early, then freeze)
   const settle = smooth(range(raw, 0, 0.14));
   const stageB = smooth(range(raw, 0.16, 0.38));
   const split = smooth(range(raw, 0.4, 0.6));
   const fullReveal = smooth(range(raw, 0.58, 0.75));
-  const programsReveal = smooth(range(raw, 0.75, 1));
+  // Finish slide-up by ~0.84 so the last stretch of sticky scroll is static
+  const programsReveal = docked ? 1 : smooth(range(raw, 0.72, 0.84));
   const programsOffset = (1 - programsReveal) * 100;
 
   // Yellow fades out as the photo takes over
@@ -157,10 +168,11 @@ export function ScrollImpactSection({
   const openFromMiddle = split;
   const leftBand = 50 - openFromMiddle * 40;
   const rightBand = 50 - openFromMiddle * 40;
-  const showSplit = split > 0.02 && fullReveal < 0.92;
+  const showSplit = !docked && split > 0.02 && fullReveal < 0.92;
 
   // Solid yellow before the middle opens — no stripe reveal
-  const showYellowOverlay = !showSplit && yellowOpacity > 0.02;
+  const showYellowOverlay = !docked && !showSplit && yellowOpacity > 0.02;
+  const showStoryLayers = !docked && programsReveal < 0.65;
 
   // Disks frame the type — stay clear of the word stack
   const leftFloatX = -38 + settle * 8 - progress * 6;
@@ -177,7 +189,7 @@ export function ScrollImpactSection({
     rightFloatIn * (1 - fullReveal * 0.35) * (1 - programsReveal * 0.4);
   const rightFloatScale = 0.78 + rightFloatIn * 0.22;
 
-  const bgScale = 1.12 - openFromMiddle * 0.1;
+  const bgScale = docked ? 1.02 : 1.12 - openFromMiddle * 0.1;
   const textBlockY = (1 - settle) * 28;
 
   return (
@@ -187,26 +199,24 @@ export function ScrollImpactSection({
       className="relative bg-impact-yellow text-brand-dark"
     >
       {/* Tall track = open story → programs docked */}
-      <div className="relative h-[520vh]">
+      <div className="relative h-[420vh]">
         {/*
-          Native #programs target: placed so scroll progress ≈ 0.95
-          (table fully revealed at end of section).
-          progress = -top / (track - viewport) → top = progress * (520vh - 100svh)
+          Native #programs target: placed so scroll progress ≈ dock point
+          (table fully revealed and frozen).
         */}
         <div
           id="programs"
           aria-hidden="true"
           className="pointer-events-none absolute left-0 h-px w-px"
-          style={{ top: "calc((520vh - 100svh) * 0.95)" }}
+          style={{ top: `calc((420vh - 100svh) * ${PROGRAMS_DOCK})` }}
         />
         <div className="sticky top-0 h-svh overflow-hidden">
-          {/* Background photo — single full-bleed layer (no duplicate crop = no seam) */}
+          {/* Background photo — static once programs dock */}
           <div
             className="absolute inset-0 z-0"
             style={{
-              opacity: showSplit || fullReveal > 0.02 ? 1 : 0,
-              transform: `scale(${bgScale})`,
-              willChange: "transform, opacity",
+              opacity: docked || showSplit || fullReveal > 0.02 ? 1 : 0,
+              transform: docked ? undefined : `scale(${bgScale})`,
             }}
           >
             <Image
@@ -215,38 +225,31 @@ export function ScrollImpactSection({
               fill
               sizes="100vw"
               className="object-cover"
-              priority
             />
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-black/30"
-              style={{
-                opacity: fullReveal * 0.22,
-              }}
+              className="absolute inset-0 bg-black/35"
             />
           </div>
 
           {showYellowOverlay && (
             <div
-              className="absolute inset-0 z-[1] bg-impact-yellow"
-              style={{
-                opacity: yellowOpacity,
-                willChange: "opacity",
-              }}
+              className="absolute inset-0 z-1 bg-impact-yellow"
+              style={{ opacity: yellowOpacity }}
             />
           )}
 
           {showSplit && (
             <>
               <div
-                className="absolute top-0 bottom-0 left-0 z-[2] bg-impact-yellow"
+                className="absolute top-0 bottom-0 left-0 z-2 bg-impact-yellow"
                 style={{
                   width: `${leftBand}%`,
                   opacity: yellowOpacity * (1 - fullReveal),
                 }}
               />
               <div
-                className="absolute top-0 right-0 bottom-0 z-[2] bg-impact-yellow"
+                className="absolute top-0 right-0 bottom-0 z-2 bg-impact-yellow"
                 style={{
                   width: `${rightBand}%`,
                   opacity: yellowOpacity * (1 - fullReveal),
@@ -256,126 +259,129 @@ export function ScrollImpactSection({
           )}
 
           {/* Soft depth on the yellow field */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-[3]"
-            style={{
-              opacity: (1 - fullReveal) * 0.7,
-              background:
-                "radial-gradient(ellipse 70% 55% at 50% 48%, transparent 30%, rgb(0 0 0 / 0.1) 100%)",
-            }}
-          />
+          {showStoryLayers && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-3"
+              style={{
+                opacity: (1 - fullReveal) * 0.7,
+                background:
+                  "radial-gradient(ellipse 70% 55% at 50% 48%, transparent 30%, rgb(0 0 0 / 0.1) 100%)",
+              }}
+            />
+          )}
 
-          {/* Typography — clear hierarchy: eyebrow → hero → script accent */}
-          <div
-            className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden"
-            style={{
-              transform: `translate3d(0, ${textBlockY}px, 0)`,
-              willChange: "transform",
-            }}
-          >
-            <div className="relative flex h-full w-full items-center justify-center">
-              <h2 id="impact-heading" className="sr-only">
-                {copy.scriptB} {copy.lineB} — {copy.lineA}
-              </h2>
+          {/* Typography — unmount once programs take over */}
+          {showStoryLayers ? (
+            <div
+              className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden"
+              style={{
+                transform: `translate3d(0, ${textBlockY}px, 0)`,
+              }}
+            >
+              <div className="relative flex h-full w-full items-center justify-center">
+                <h2 id="impact-heading" className="sr-only">
+                  {copy.scriptB} {copy.lineB} — {copy.lineA}
+                </h2>
 
-              {/* STRONG — hero word */}
-              <p
-                aria-hidden="true"
-                className="absolute inset-x-0 top-1/2 z-[5] -translate-y-1/2 text-center font-display text-[clamp(5.5rem,28vw,22rem)] leading-[0.8] tracking-[-0.03em] text-black uppercase"
-                style={{
-                  opacity: Math.max(0, lineBOpacity),
-                  transform: `translate3d(0, calc(-50% + ${lineBY}vh), 0) scale(${lineBScale})`,
-                  willChange: "transform, opacity",
-                }}
-              >
-                {copy.lineB}
-              </p>
+                <p
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-1/2 z-5 -translate-y-1/2 text-center font-display text-[clamp(5.5rem,28vw,22rem)] leading-[0.8] tracking-[-0.03em] text-black uppercase"
+                  style={{
+                    opacity: Math.max(0, lineBOpacity),
+                    transform: `translate3d(0, calc(-50% + ${lineBY}vh), 0) scale(${lineBScale})`,
+                  }}
+                >
+                  {copy.lineB}
+                </p>
 
-              {/* SPORTS — starts as hero, settles as spaced eyebrow above STRONG */}
-              <p
-                aria-hidden="true"
-                className="relative z-10 w-full text-center font-display text-[clamp(5rem,26vw,20rem)] leading-[0.84] text-brand-dark uppercase"
-                style={{
-                  opacity: Math.max(0, lineAOpacity),
-                  letterSpacing: `${lineATracking}em`,
-                  transform: `translate3d(0, ${lineAY}vh, 0) scale(${lineAScale})`,
-                  willChange: "transform, opacity",
-                }}
-              >
-                {copy.lineA}
-              </p>
+                <p
+                  aria-hidden="true"
+                  className="relative z-10 w-full text-center font-display text-[clamp(5rem,26vw,20rem)] leading-[0.84] text-brand-dark uppercase"
+                  style={{
+                    opacity: Math.max(0, lineAOpacity),
+                    letterSpacing: `${lineATracking}em`,
+                    transform: `translate3d(0, ${lineAY}vh, 0) scale(${lineAScale})`,
+                  }}
+                >
+                  {copy.lineA}
+                </p>
 
-              {/* GO — stage A accent */}
-              <p
-                aria-hidden="true"
-                className="impact-script pointer-events-none absolute top-[46%] left-1/2 z-30 font-script text-[clamp(3.25rem,11vw,7.5rem)] leading-none text-white"
-                style={{
-                  opacity: Math.max(0, scriptAOpacity),
-                  transform: `translate3d(-50%, ${scriptAY}vh, 0) rotate(-12deg)`,
-                  willChange: "transform, opacity",
-                }}
-              >
-                {copy.scriptA}
-              </p>
+                <p
+                  aria-hidden="true"
+                  className="impact-script pointer-events-none absolute top-[46%] left-1/2 z-30 font-script text-[clamp(3.25rem,11vw,7.5rem)] leading-none text-white"
+                  style={{
+                    opacity: Math.max(0, scriptAOpacity),
+                    transform: `translate3d(-50%, ${scriptAY}vh, 0) rotate(-12deg)`,
+                  }}
+                >
+                  {copy.scriptA}
+                </p>
 
-              {/* GET — stage B accent, anchored low-left of STRONG */}
-              <p
-                aria-hidden="true"
-                className="impact-script pointer-events-none absolute top-1/2 left-1/2 z-30 font-script text-[clamp(3rem,10vw,6.5rem)] leading-none text-white"
-                style={{
-                  opacity: Math.max(0, scriptBOpacity),
-                  transform: `translate3d(calc(-50% + ${scriptBX}%), calc(-50% + ${scriptBY}vh), 0) rotate(-10deg)`,
-                  willChange: "transform, opacity",
-                }}
-              >
-                {copy.scriptB}
-              </p>
+                <p
+                  aria-hidden="true"
+                  className="impact-script pointer-events-none absolute top-1/2 left-1/2 z-30 font-script text-[clamp(3rem,10vw,6.5rem)] leading-none text-white"
+                  style={{
+                    opacity: Math.max(0, scriptBOpacity),
+                    transform: `translate3d(calc(-50% + ${scriptBX}%), calc(-50% + ${scriptBY}vh), 0) rotate(-10deg)`,
+                  }}
+                >
+                  {copy.scriptB}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <h2 id="impact-heading" className="sr-only">
+              {copy.scriptB} {copy.lineB} — {copy.lineA}
+            </h2>
+          )}
 
-          {/* Floating photos — frame the type, sit behind the word stack */}
-          <div className="pointer-events-none absolute inset-0 z-[12] overflow-hidden">
-            <FloatingDisk
-              src={impactImages.floatLeft.src}
-              alt={impactImages.floatLeft.alt}
-              className="top-[12%] left-0 w-[min(46vw,20rem)] sm:w-[min(38vw,22rem)] md:w-[min(32vw,24rem)]"
-              sizes="36vw"
-              style={{
-                opacity: leftFloatOpacity,
-                transform: `translate3d(${leftFloatX}%, ${leftFloatY}%, 0) scale(${leftFloatScale}) rotate(${-18 + progress * 10}deg)`,
-                zIndex: 4,
-                willChange: "transform, opacity",
-              }}
-            />
-            <FloatingDisk
-              src={impactImages.floatRight.src}
-              alt={impactImages.floatRight.alt}
-              className="top-[58%] right-0 w-[min(42vw,18rem)] sm:w-[min(34vw,20rem)] md:w-[min(28vw,22rem)]"
-              sizes="32vw"
-              style={{
-                opacity: rightFloatOpacity,
-                transform: `translate3d(${rightFloatX}%, ${rightFloatY}%, 0) scale(${rightFloatScale}) rotate(${14 - progress * 10}deg)`,
-                zIndex: 4,
-                willChange: "transform, opacity",
-              }}
-            />
-          </div>
+          {/* Floating photos — unmount once programs take over */}
+          {showStoryLayers && (
+            <div className="pointer-events-none absolute inset-0 z-12 overflow-hidden">
+              <FloatingDisk
+                src={impactImages.floatLeft.src}
+                alt={impactImages.floatLeft.alt}
+                className="top-[12%] left-0 w-[min(46vw,20rem)] sm:w-[min(38vw,22rem)] md:w-[min(32vw,24rem)]"
+                sizes="36vw"
+                style={{
+                  opacity: leftFloatOpacity,
+                  transform: `translate3d(${leftFloatX}%, ${leftFloatY}%, 0) scale(${leftFloatScale}) rotate(${-18 + progress * 10}deg)`,
+                  zIndex: 4,
+                }}
+              />
+              <FloatingDisk
+                src={impactImages.floatRight.src}
+                alt={impactImages.floatRight.alt}
+                className="top-[58%] right-0 w-[min(42vw,18rem)] sm:w-[min(34vw,20rem)] md:w-[min(28vw,22rem)]"
+                sizes="32vw"
+                style={{
+                  opacity: rightFloatOpacity,
+                  transform: `translate3d(${rightFloatX}%, ${rightFloatY}%, 0) scale(${rightFloatScale}) rotate(${14 - progress * 10}deg)`,
+                  zIndex: 4,
+                }}
+              />
+            </div>
+          )}
 
-          {/* Upcoming programs — slides up and stays */}
+          {/* Upcoming programs — slides up once, then stays static */}
           <div
             className="absolute inset-x-0 bottom-0 z-40"
-            style={{
-              transform: `translate3d(0, ${programsOffset}%, 0)`,
-              opacity: programsReveal > 0.02 ? 1 : 0,
-              pointerEvents: programsReveal > 0.55 ? "auto" : "none",
-              willChange: "transform",
-            }}
+            style={
+              docked
+                ? { pointerEvents: "auto" }
+                : {
+                    transform: `translate3d(0, ${programsOffset}%, 0)`,
+                    opacity: programsReveal > 0.02 ? 1 : 0,
+                    pointerEvents: programsReveal > 0.55 ? "auto" : "none",
+                  }
+            }
           >
             <UpcomingProgramsTable
               locale={locale}
               copy={programsCopy}
               programs={programs}
+              loadImages={docked}
             />
           </div>
         </div>

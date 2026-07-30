@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 import type { Locale } from "@/config/i18n";
 import {
@@ -45,7 +46,8 @@ async function fetchGlobal<T>(
   }
 }
 
-export async function getCmsHomeHero(locale: Locale) {
+/** Dedupes Hero + Partners calls in the same request. */
+export const getCmsHomeHero = cache(async (locale: Locale) => {
   const cached = unstable_cache(
     () => fetchGlobal<Record<string, unknown>>("home-hero", locale),
     [`cms-home-hero-${locale}`],
@@ -109,7 +111,7 @@ export async function getCmsHomeHero(locale: Locale) {
     partnersLabel: String(fromCms?.partnersLabel ?? "").trim(),
     partners: cmsPartners.length > 0 ? cmsPartners : defaultPartnerLogos,
   };
-}
+});
 
 export async function getCmsAboutPage(locale: Locale) {
   const cached = unstable_cache(

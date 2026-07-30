@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const HomeHero: GlobalConfig = {
@@ -12,7 +8,7 @@ export const HomeHero: GlobalConfig = {
   admin: {
     group: "Home",
     description:
-      "Top of homepage — shutter carousel, title text, and partners marquee",
+      "Top of homepage — shutter carousel, title text, and partners marquee. Each slide = one progress indicator (image first, then video).",
   },
   access: {
     read: () => true,
@@ -21,11 +17,6 @@ export const HomeHero: GlobalConfig = {
     afterChange: [revalidateGlobals],
   },
   fields: [
-    sectionPreviewField(
-      homePreviews.heroCarousel,
-      "Hero carousel with shutter bars",
-      "Each slide = one progress indicator. Within a slide the shutter shows the image first, then the video (uploaded preferred over YouTube).",
-    ),
     {
       type: "tabs",
       tabs: [

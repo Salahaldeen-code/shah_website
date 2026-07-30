@@ -25,15 +25,29 @@ import { HomeImpact } from "./globals/HomeImpact.ts";
 import { HomeShowcase } from "./globals/HomeShowcase.ts";
 import { ProgramsUi } from "./globals/ProgramsUi.ts";
 import { SiteSettings } from "./globals/SiteSettings.ts";
-import {
-  cloudinaryStorage,
-  readCloudinaryCredentials,
-} from "./payload/storage/cloudinary.ts";
+import { applyAdminNavOrder } from "./payload/admin/navLabels.ts";
+import { cloudinaryStorage } from "./payload/storage/cloudinary.ts";
+import { readCloudinaryCredentials } from "./payload/storage/credentials.ts";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-const postgresUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const postgresUrl = (() => {
+  const raw = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    if (
+      url.hostname.endsWith(".neon.tech") &&
+      !url.hostname.includes("-pooler.")
+    ) {
+      url.hostname = url.hostname.replace(/^([^.]+)/, "$1-pooler");
+    }
+    return url.toString();
+  } catch {
+    return raw;
+  }
+})();
 const isVercel = Boolean(process.env.VERCEL);
 const isProd = process.env.NODE_ENV === "production";
 
@@ -54,9 +68,6 @@ const blobToken = cloudinaryCredentials
   ? undefined
   : process.env.BLOB_READ_WRITE_TOKEN;
 
-const editBesideSave =
-  "@/payload/components/EditBesideSave#EditBesideSave";
-
 const collections = [
   Programs,
   Categories,
@@ -65,22 +76,18 @@ const collections = [
   MembershipRegistrations,
   Media,
   Users,
-].map((collection) => ({
-  ...collection,
-  disableDuplicate: true,
-  admin: {
-    ...collection.admin,
-    hideAPIURL: true,
-    disableCopyToLocale: true,
-    components: {
-      ...collection.admin?.components,
-      edit: {
-        ...collection.admin?.components?.edit,
-        beforeDocumentControls: [editBesideSave],
-      },
+].map((collection) => {
+  const ordered = applyAdminNavOrder(collection);
+  return {
+    ...ordered,
+    disableDuplicate: true,
+    admin: {
+      ...ordered.admin,
+      hideAPIURL: true,
+      disableCopyToLocale: true,
     },
-  },
-}));
+  };
+});
 
 const globals = [
   HomeHero,
@@ -94,21 +101,17 @@ const globals = [
   GalleryUi,
   ContactPage,
   SiteSettings,
-].map((global) => ({
-  ...global,
-  admin: {
-    ...global.admin,
-    hideAPIURL: true,
-    disableCopyToLocale: true,
-    components: {
-      ...global.admin?.components,
-      elements: {
-        ...global.admin?.components?.elements,
-        beforeDocumentControls: [editBesideSave],
-      },
+].map((global) => {
+  const ordered = applyAdminNavOrder(global);
+  return {
+    ...ordered,
+    admin: {
+      ...ordered.admin,
+      hideAPIURL: true,
+      disableCopyToLocale: true,
     },
-  },
-}));
+  };
+});
 
 export default buildConfig({
   serverURL:
@@ -120,10 +123,20 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
-      Nav: "@/payload/components/SortedNav#SortedNav",
+      graphics: {
+        Logo: "@/payload/components/AdminLogo#AdminLogo",
+        Icon: "@/payload/components/AdminIcon#AdminIcon",
+      },
     },
     meta: {
-      titleSuffix: " — PSR CMS",
+      titleSuffix: " — Persatuan Sukan & Rekreasi",
+      icons: [
+        {
+          type: "image/png",
+          rel: "icon",
+          url: "/images/app/logo-psr.png",
+        },
+      ],
     },
   },
   collections,
@@ -136,14 +149,18 @@ export default buildConfig({
     ? vercelPostgresAdapter({
         pool: {
           connectionString: postgresUrl,
+          max: 10,
+          idleTimeoutMillis: 10_000,
+          connectionTimeoutMillis: 10_000,
         },
-        // Schema push is for local/dev only — never on every Vercel cold start
         push: !isProd,
       })
     : sqliteAdapter({
         client: {
           url: process.env.SQLITE_URL || "file:./payload.db",
         },
+        // Local DB already exists — skip schema push on every dev boot.
+        push: false,
       }),
   localization: {
     locales: [

@@ -29,10 +29,8 @@ function usePrefersReducedMotion() {
 
 function PartnerBadge({
   partner,
-  priority,
 }: {
   partner: PartnerLogo;
-  priority?: boolean;
 }) {
   const { logoHeightRem, logoHeightRemSm } = partnersMarqueeConfig;
 
@@ -51,7 +49,6 @@ function PartnerBadge({
         alt={partner.alt}
         width={160}
         height={160}
-        priority={priority}
         className="h-[var(--partners-logo-h)] w-auto max-w-[9rem] object-contain sm:h-[var(--partners-logo-h-sm)] sm:max-w-[10.5rem]"
       />
     </span>
@@ -88,11 +85,10 @@ function MarqueeRow({
       key={keyPrefix}
       className="flex shrink-0 items-center gap-8 pr-8 sm:gap-12 sm:pr-12"
     >
-      {partners.map((partner, index) => (
+      {partners.map((partner) => (
         <PartnerBadge
           key={`${keyPrefix}-${partner.id}`}
           partner={partner}
-          priority={keyPrefix === "a" && index < 4}
         />
       ))}
     </div>

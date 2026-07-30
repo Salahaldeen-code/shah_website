@@ -1,9 +1,5 @@
 import type { GlobalConfig } from "payload";
 
-import {
-  homePreviews,
-  sectionPreviewField,
-} from "../payload/admin/sectionPreview.ts";
 import { revalidateGlobals } from "../hooks/revalidateContent.ts";
 
 export const HomeActivities: GlobalConfig = {
@@ -11,7 +7,8 @@ export const HomeActivities: GlobalConfig = {
   label: "Activities Section",
   admin: {
     group: "Home",
-    description: "Home → Activities title, description, and Join the Movement",
+    description:
+      "Home → Activities title, description, and Join the Movement block.",
   },
   access: {
     read: () => true,
@@ -26,11 +23,6 @@ export const HomeActivities: GlobalConfig = {
         {
           label: "Section copy",
           fields: [
-            sectionPreviewField(
-              homePreviews.activitiesCards,
-              "Activities cards stage",
-              "Section title, description, and activity photo cards.",
-            ),
             { name: "title", type: "text", localized: true, required: true },
             { name: "description", type: "textarea", localized: true },
           ],
@@ -38,18 +30,23 @@ export const HomeActivities: GlobalConfig = {
         {
           label: "Join the Movement",
           fields: [
-            sectionPreviewField(
-              homePreviews.joinMovement,
-              "Join the Movement membership block",
-              "Membership headline, body copy, CTA, and athlete cutout image.",
-            ),
             {
               name: "membership",
               type: "group",
               label: false,
               fields: [
-                { name: "titleLine1", type: "text", localized: true },
-                { name: "titleLine2", type: "text", localized: true },
+                {
+                  name: "titleLine1",
+                  type: "text",
+                  localized: true,
+                  required: true,
+                },
+                {
+                  name: "titleLine2",
+                  type: "text",
+                  localized: true,
+                  required: true,
+                },
                 { name: "description", type: "textarea", localized: true },
                 { name: "joinCta", type: "text", localized: true },
                 { name: "imageAlt", type: "text", localized: true },

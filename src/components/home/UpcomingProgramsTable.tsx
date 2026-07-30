@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type CSSProperties } from "react";
+import { memo, useEffect, useState, type CSSProperties } from "react";
 
 import { ProgramDetailModal } from "@/components/home/ProgramDetailModal";
 import {
@@ -18,6 +18,8 @@ type UpcomingProgramsTableProps = {
   locale: Locale;
   copy: Dictionary["programs"];
   programs?: CmsProgram[];
+  /** When false, thumbnails stay as placeholders (avoids load during sticky scroll). */
+  loadImages?: boolean;
   className?: string;
   style?: CSSProperties;
 };
@@ -79,10 +81,11 @@ function PinIcon({ className }: { className?: string }) {
   );
 }
 
-export function UpcomingProgramsTable({
+export const UpcomingProgramsTable = memo(function UpcomingProgramsTable({
   locale,
   copy,
   programs: programsProp,
+  loadImages = true,
   className = "",
   style,
 }: UpcomingProgramsTableProps) {
@@ -92,6 +95,12 @@ export function UpcomingProgramsTable({
   const [selected, setSelected] = useState<CmsProgram | ProgramRecord | null>(
     null,
   );
+  // Latch: once table has settled, keep images even if scroll briefly undocks
+  const [imagesReady, setImagesReady] = useState(loadImages);
+
+  useEffect(() => {
+    if (loadImages) setImagesReady(true);
+  }, [loadImages]);
 
   const allUpcoming = programsProp
     ? [...programsProp].sort(
@@ -117,9 +126,7 @@ export function UpcomingProgramsTable({
 
   function programCategory(program: CmsProgram | ProgramRecord) {
     if ("categoryLabel" in program && program.categoryLabel) {
-      return (
-        copy.categories[program.categoryKey] ?? program.categoryLabel
-      );
+      return copy.categories[program.categoryKey] ?? program.categoryLabel;
     }
     return copy.categories[program.categoryKey];
   }
@@ -180,7 +187,7 @@ export function UpcomingProgramsTable({
                 {copy.empty}
               </li>
             ) : (
-              visiblePrograms.map((program, index) => {
+              visiblePrograms.map((program) => {
                 const schedule = formatScheduleLabel(
                   program.start,
                   program.end,
@@ -193,16 +200,19 @@ export function UpcomingProgramsTable({
                       type="button"
                       onClick={() => setSelected(program)}
                       className="programs-row programs-row-glass group grid w-full cursor-pointer grid-cols-[3.5rem_minmax(0,1fr)] items-start gap-x-3 gap-y-2.5 px-3 py-3 text-left sm:h-[6rem] sm:grid-cols-[4.75rem_minmax(0,1.2fr)_minmax(0,1.1fr)_auto] sm:items-center sm:gap-5 sm:px-4 sm:py-0"
-                      style={{ animationDelay: `${index * 60}ms` }}
                     >
                       <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-surface sm:aspect-4/3">
-                        <Image
-                          src={program.image}
-                          alt={programTitle(program)}
-                          fill
-                          sizes="76px"
-                          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
-                        />
+                        {imagesReady ? (
+                          <Image
+                            src={program.image}
+                            alt={programTitle(program)}
+                            fill
+                            sizes="76px"
+                            loading="lazy"
+                            decoding="async"
+                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+                          />
+                        ) : null}
                       </div>
 
                       <div className="min-w-0 self-center">
@@ -286,4 +296,4 @@ export function UpcomingProgramsTable({
       ) : null}
     </div>
   );
-}
+});

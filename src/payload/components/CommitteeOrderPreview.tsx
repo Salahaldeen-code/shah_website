@@ -73,7 +73,7 @@ export function CommitteeOrderPreview() {
   const load = useCallback(async () => {
     try {
       const res = await fetch(
-        "/api/committee-members?limit=50&depth=1&sort=order",
+        "/api/committee-members?limit=50&depth=1&sort=order&select[name]=true&select[role]=true&select[order]=true&select[image]=true",
         { credentials: "include" },
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

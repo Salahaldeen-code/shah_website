@@ -17,7 +17,7 @@ export const Categories: CollectionConfig = {
     description:
       "Activity categories — also power the Active Life collage images on the homepage",
     useAsTitle: "title",
-    defaultColumns: ["image", "title", "updatedAt"],
+    defaultColumns: ["title", "updatedAt"],
     listSearchableFields: ["title"],
   },
   access: {
